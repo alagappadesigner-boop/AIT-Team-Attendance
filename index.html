@@ -661,7 +661,8 @@
       return `${Math.floor(m / 60)}h ${m % 60}m`;
     }
 
-    function lateMins(t) {
+    function lateMins(t, status) {
+      if (status === 'Absent' || status === 'Leave') return null;
       const a = parseToMinutes(t);
       const r = parseToMinutes(document.getElementById('reportingTime').value || '09:00');
       return a == null ? null : Math.max(0, a - r);
@@ -726,7 +727,7 @@
         shown++;
 
         const dur = duration(rec.inTime, rec.outTime, rec.status);
-        const lm = lateMins(rec.inTime);
+        const lm = lateMins(rec.inTime, rec.status);
         
         if (rec.status === 'Present' && (rec.inTime || rec.outTime)) present++;
         if (rec.status === 'Present' && lm > 0) late++;
@@ -745,7 +746,7 @@
           </td>
           <td class="py-2.5 px-3.5">
             <div class="flex items-center gap-1.5">
-              <input type="time" data-id="${staff.id}" data-field="inTime" value="${esc(rec.inTime)}" aria-label="In time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold transition">
+              <input type="time" data-id="${staff.id}" data-field="inTime" value="${esc(rec.status === 'Absent' || rec.status === 'Leave' ? '' : rec.inTime)}" ${rec.status === 'Absent' || rec.status === 'Leave' ? 'disabled' : ''} aria-label="In time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold transition disabled:opacity-50">
               <button type="button" class="quick-in-btn bg-[#174A78] hover:bg-[#123456] text-white text-[11px] px-2 py-1 rounded font-medium transition duration-150 active:scale-95" data-id="${staff.id}" title="Set current local time">In</button>
             </div>
           </td>
@@ -793,6 +794,10 @@
         val = formatTime12h(val);
       }
       rec[field] = val;
+
+      if (field === 'status' && (val === 'Absent' || val === 'Leave')) {
+        rec.inTime = '';
+      }
       renderDaily();
     });
 
@@ -818,8 +823,13 @@
         return;
       }
 
-      const now = new Date();
       const rec = getFormRecord(id);
+      if (rec.status === 'Absent' || rec.status === 'Leave') {
+        showValidationPopup(`Cannot record punch times for staff with status '${rec.status}'.`);
+        return;
+      }
+
+      const now = new Date();
 
       if (btn.classList.contains('quick-in-btn')) {
         rec.inTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
@@ -950,7 +960,7 @@
       state.staff.forEach((s, i) => {
         const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
         const d = duration(r.inTime, r.outTime, r.status);
-        rows.push([k, i + 1, s.name, s.department || '', s.role || '', formatTime12h(r.inTime), formatTime12h(r.outTime), d == null ? '' : fmtMins(d), lateMins(r.inTime) ?? '', r.status, r.remarks]);
+        rows.push([k, i + 1, s.name, s.department || '', s.role || '', formatTime12h(r.inTime), formatTime12h(r.outTime), d == null ? '' : fmtMins(d), lateMins(r.inTime, r.status) ?? '', r.status, r.remarks]);
       });
 
       const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
@@ -1032,12 +1042,11 @@
       }
     });
 
-    // Monthly Summary Logic
-    function renderMonthlySummary() {
+    // Unified Monthly Summary Calculation Function (Shared Source of Truth for UI & CSV)
+    function getMonthlySummaryData() {
       const monthStr = monthlyMonthPicker.value;
       const workingDays = parseInt(document.getElementById('workingDaysInput').value) || 22;
-      const body = document.getElementById('monthlyBody');
-      body.innerHTML = '';
+      const results = [];
 
       state.staff.forEach((staff, i) => {
         let presentDays = 0;
@@ -1052,7 +1061,7 @@
             if (rec) {
               if (rec.status === 'Present' && (rec.inTime || rec.outTime)) {
                 presentDays++;
-                const lm = lateMins(rec.inTime);
+                const lm = lateMins(rec.inTime, rec.status);
                 if (lm > 0) lateCount++;
                 const dur = duration(rec.inTime, rec.outTime, rec.status);
                 if (dur != null) {
@@ -1067,19 +1076,42 @@
         });
 
         const attendancePct = workingDays > 0 ? Math.min(100, Math.round((presentDays / workingDays) * 100)) : 0;
+        results.push({
+          sNo: i + 1,
+          staffName: staff.name,
+          presentDays,
+          attendancePct,
+          leaveDays,
+          lateCount,
+          totalOvertimeMins,
+          totalStaffMins,
+          totalOvertimeStr: fmtMins(totalOvertimeMins),
+          totalWorkingHoursStr: fmtMins(totalStaffMins)
+        });
+      });
+      return { monthStr, workingDays, results };
+    }
+
+    // Monthly Summary Logic
+    function renderMonthlySummary() {
+      const { results } = getMonthlySummaryData();
+      const body = document.getElementById('monthlyBody');
+      body.innerHTML = '';
+
+      results.forEach((data, i) => {
         const rowBgClass = (i % 2 === 0) ? 'bg-white dark:bg-slate-900' : 'bg-[#F5F7FA] dark:bg-slate-900/60';
 
         const tr = document.createElement('tr');
         tr.className = `${rowBgClass} hover:bg-slate-100 dark:hover:bg-slate-800/60 transition duration-150`;
         tr.innerHTML = `
-          <td class="py-2.5 px-3.5 text-center font-medium text-brand-muted dark:text-slate-400">${i + 1}</td>
-          <td class="py-2.5 px-3.5 font-semibold text-[#123456] dark:text-brand-gold text-xs">${esc(staff.name)}</td>
-          <td class="py-2.5 px-3.5 font-bold text-[#187653]">${presentDays} days</td>
-          <td class="py-2.5 px-3.5 font-bold text-[#174A78] dark:text-brand-gold">${attendancePct}%</td>
-          <td class="py-2.5 px-3.5 text-brand-gold font-medium">${leaveDays} days</td>
-          <td class="py-2.5 px-3.5 text-[#B93838] font-semibold">${lateCount}</td>
-          <td class="py-2.5 px-3.5 text-[#174A78] dark:text-slate-300 font-semibold">${fmtMins(totalOvertimeMins)}</td>
-          <td class="py-2.5 px-3.5 font-bold text-[#123456] dark:text-brand-gold">${fmtMins(totalStaffMins)}</td>
+          <td class="py-2.5 px-3.5 text-center font-medium text-brand-muted dark:text-slate-400">${data.sNo}</td>
+          <td class="py-2.5 px-3.5 font-semibold text-[#123456] dark:text-brand-gold text-xs">${esc(data.staffName)}</td>
+          <td class="py-2.5 px-3.5 font-bold text-[#187653]">${data.presentDays} days</td>
+          <td class="py-2.5 px-3.5 font-bold text-[#174A78] dark:text-brand-gold">${data.attendancePct}%</td>
+          <td class="py-2.5 px-3.5 text-brand-gold font-medium">${data.leaveDays} days</td>
+          <td class="py-2.5 px-3.5 text-[#B93838] font-semibold">${data.lateCount}</td>
+          <td class="py-2.5 px-3.5 text-[#174A78] dark:text-slate-300 font-semibold">${data.totalOvertimeStr}</td>
+          <td class="py-2.5 px-3.5 font-bold text-[#123456] dark:text-brand-gold">${data.totalWorkingHoursStr}</td>
         `;
         body.appendChild(tr);
       });
@@ -1089,36 +1121,27 @@
     document.getElementById('workingDaysInput').addEventListener('input', renderMonthlySummary);
     document.getElementById('approvedHolidaysInput').addEventListener('input', renderMonthlySummary);
 
-    // Monthly CSV Export with Validation
+    // Monthly CSV Export using the Unified Source of Truth
     document.getElementById('exportMonthlyBtn').addEventListener('click', () => {
-      const monthStr = monthlyMonthPicker.value;
+      const { monthStr, results } = getMonthlySummaryData();
       if (!monthStr) {
         showValidationPopup('Please select a valid month before exporting monthly summary.');
         return;
       }
-      const workingDays = parseInt(document.getElementById('workingDaysInput').value) || 22;
       const rows = [['Month', 'S.No.', 'Staff Name', 'Present Days', 'Attendance %', 'Leave Days', 'Late Count', 'Total Overtime', 'Total Working Hours']];
 
-      state.staff.forEach((staff, i) => {
-        let presentDays = 0, leaveDays = 0, lateCount = 0, totalOvertimeMins = 0, totalStaffMins = 0;
-        Object.keys(state.days).forEach(dateKey => {
-          if (dateKey.startsWith(monthStr)) {
-            const rec = state.days[dateKey][staff.id];
-            if (rec) {
-              if (rec.status === 'Present' && (rec.inTime || rec.outTime)) {
-                presentDays++;
-                if (lateMins(rec.inTime) > 0) lateCount++;
-                const dur = duration(rec.inTime, rec.outTime, rec.status);
-                if (dur != null) {
-                  totalStaffMins += dur;
-                  if (dur > 480) totalOvertimeMins += (dur - 480);
-                }
-              } else if (rec.status === 'Leave') leaveDays++;
-            }
-          }
-        });
-        const pct = workingDays > 0 ? Math.min(100, Math.round((presentDays / workingDays) * 100)) : 0;
-        rows.push([monthStr, i + 1, staff.name, presentDays, pct + '%', leaveDays, lateCount, fmtMins(totalOvertimeMins), fmtMins(totalStaffMins)]);
+      results.forEach(data => {
+        rows.push([
+          monthStr,
+          data.sNo,
+          data.staffName,
+          data.presentDays,
+          data.attendancePct + '%',
+          data.leaveDays,
+          data.lateCount,
+          data.totalOvertimeStr,
+          data.totalWorkingHoursStr
+        ]);
       });
 
       const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
