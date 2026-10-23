@@ -225,7 +225,7 @@
                 <th class="py-2.5 px-3.5 w-12 text-center">S.No.</th>
                 <th class="py-2.5 px-3.5">Staff Name & Role</th>
                 <th class="py-2.5 px-3.5">In Time & Quick Punch</th>
-                <th class="py-2.5 px-3.5">Out Time & Quick Punch</th>
+                <th class="py-2.5 px-3.5">Out Time (12h) & Quick Punch</th>
                 <th class="py-2.5 px-3.5">Working Hours</th>
                 <th class="py-2.5 px-3.5">Late By</th>
                 <th class="py-2.5 px-3.5">Status</th>
@@ -594,17 +594,33 @@
       });
     });
 
-    // Time calculations
-    function mins(t) {
+    // Format & Time Parsing Helpers (Supports both 12h AM/PM and 24h formats)
+    function parseToMinutes(t) {
       if (!t) return null;
-      const p = t.split(':').map(Number);
-      return p[0] * 60 + p[1];
+      let timeStr = String(t).trim().toUpperCase();
+      
+      const isPM = timeStr.includes('PM');
+      const isAM = timeStr.includes('AM');
+      timeStr = timeStr.replace(/(AM|PM)/g, '').trim();
+
+      const parts = timeStr.split(':').map(Number);
+      if (parts.length < 2 || isNaN(parts[0]) || isNaN(parts[1])) return null;
+
+      let h = parts[0];
+      let m = parts[1];
+
+      if (isPM && h < 12) h += 12;
+      if (isAM && h === 12) h = 0;
+
+      return h * 60 + m;
     }
 
     function duration(a, b, status) {
       if (status === 'Leave' || status === 'Absent') return null;
-      if (!a || !b) return null;
-      let diff = mins(b) - mins(a);
+      const minA = parseToMinutes(a);
+      const minB = parseToMinutes(b);
+      if (minA == null || minB == null) return null;
+      let diff = minB - minA;
       if (diff < 0) diff += 1440;
       return diff;
     }
@@ -615,17 +631,22 @@
     }
 
     function lateMins(t) {
-      const a = mins(t);
-      const r = mins(document.getElementById('reportingTime').value || '09:00');
+      const a = parseToMinutes(t);
+      const r = parseToMinutes(document.getElementById('reportingTime').value || '09:00');
       return a == null ? null : Math.max(0, a - r);
     }
 
     function formatTime12h(timeStr) {
       if (!timeStr) return '';
-      const parts = timeStr.split(':');
-      if (parts.length < 2) return timeStr;
+      let str = String(timeStr).trim().toUpperCase();
+      if (str.includes('AM') || str.includes('PM')) {
+        return str;
+      }
+      const parts = str.split(':');
+      if (parts.length < 2) return str;
       let h = parseInt(parts[0], 10);
       const m = parts[1];
+      if (isNaN(h)) return str;
       const ampm = h >= 12 ? 'PM' : 'AM';
       h = h % 12;
       h = h ? h : 12;
@@ -640,7 +661,7 @@
       return datePicker.value;
     }
 
-    // Get active form record for editing, defaulting outTime to 18:00
+    // Get active form record for editing, defaulting outTime to "06:00 PM"
     function getFormRecord(staffId) {
       const k = dayKey();
       if (!state.forms[k]) {
@@ -650,8 +671,12 @@
         const saved = state.days[k] && state.days[k][staffId];
         if (saved) {
           state.forms[k][staffId] = { ...saved };
+          if (state.forms[k][staffId].outTime) {
+            state.forms[k][staffId].outTime = formatTime12h(state.forms[k][staffId].outTime);
+          }
         } else {
-          state.forms[k][staffId] = { inTime: '', outTime: '18:00', status: 'Present', remarks: '' };
+          // Explicit Default Out Time in 12-Hour format
+          state.forms[k][staffId] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
         }
       }
       return state.forms[k][staffId];
@@ -697,8 +722,8 @@
           </td>
           <td class="py-2.5 px-3.5">
             <div class="flex items-center gap-1.5">
-              <input type="time" data-id="${staff.id}" data-field="outTime" value="${esc(rec.outTime)}" aria-label="Out time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-blue">
-              <button type="button" class="quick-out-btn bg-brand-navySecondary hover:bg-brand-navy text-white text-[11px] px-2 py-1 rounded font-medium transition" data-id="${staff.id}" title="Set current local time">Out</button>
+              <input type="text" data-id="${staff.id}" data-field="outTime" value="${esc(formatTime12h(rec.outTime))}" placeholder="06:00 PM" aria-label="Out time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-blue uppercase">
+              <button type="button" class="quick-out-btn bg-brand-navySecondary hover:bg-brand-navy text-white text-[11px] px-2 py-1 rounded font-medium transition" data-id="${staff.id}" title="Set current local time in 12h AM/PM">Out</button>
             </div>
             ${isMissingPunch ? '<div class="text-[10px] text-brand-amber font-semibold mt-0.5">⚠️ Missing Out-Punch</div>' : ''}
           </td>
@@ -734,7 +759,11 @@
       if (!id || !field) return;
 
       const rec = getFormRecord(id);
-      rec[field] = el.value;
+      let val = el.value;
+      if (field === 'outTime' && val) {
+        val = formatTime12h(val);
+      }
+      rec[field] = val;
       renderDaily();
     });
 
@@ -747,7 +776,7 @@
       }
     });
 
-    // Quick Punch
+    // Quick Punch Button (In -> 24h/12h, Out -> 12h AM/PM)
     document.getElementById('attendanceBody').addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn) return;
@@ -757,13 +786,17 @@
       if (!validateAttendanceDate()) return;
 
       const now = new Date();
-      const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
       const rec = getFormRecord(id);
 
       if (btn.classList.contains('quick-in-btn')) {
-        rec.inTime = timeStr;
+        rec.inTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
       } else if (btn.classList.contains('quick-out-btn')) {
-        rec.outTime = timeStr;
+        let h = now.getHours();
+        const m = String(now.getMinutes()).padStart(2, '0');
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12;
+        h = h ? h : 12;
+        rec.outTime = `${String(h).padStart(2, '0')}:${m} ${ampm}`;
       }
       renderDaily();
     });
@@ -775,7 +808,11 @@
       document.querySelectorAll('#attendanceBody [data-id][data-field]').forEach(el => {
         const { id, field } = el.dataset;
         const rec = getFormRecord(id);
-        rec[field] = el.value;
+        let val = el.value;
+        if (field === 'outTime' && val) {
+          val = formatTime12h(val);
+        }
+        rec[field] = val;
       });
 
       const k = dayKey();
@@ -798,14 +835,14 @@
       }
     });
 
-    // Modal OK Button - Clear Visible Form Draft to Blank / 18:00
+    // Modal OK Button - Clear Visible Form Draft to Blank / 06:00 PM
     document.getElementById('savedModalOkBtn').addEventListener('click', () => {
       document.getElementById('savedSuccessModal').classList.add('hidden');
       
       const k = dayKey();
       state.forms[k] = {};
       state.staff.forEach(staff => {
-        state.forms[k][staff.id] = { inTime: '', outTime: '18:00', status: 'Present', remarks: '' };
+        state.forms[k][staff.id] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
       });
       renderDaily();
     });
@@ -816,7 +853,7 @@
         const k = dayKey();
         state.forms[k] = {};
         state.staff.forEach(staff => {
-          state.forms[k][staff.id] = { inTime: '', outTime: '18:00', status: 'Present', remarks: '' };
+          state.forms[k][staff.id] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
         });
         renderDaily();
       }
@@ -849,12 +886,12 @@
 
       const k = dayKey();
       const day = state.days[k] || {};
-      const rows = [['Date', 'S.No.', 'Staff Name', 'Department', 'Role', 'In Time', 'Out Time', 'Working Hours', 'Late By (mins)', 'Status', 'Remarks']];
+      const rows = [['Date', 'S.No.', 'Staff Name', 'Department', 'Role', 'In Time', 'Out Time (12h)', 'Working Hours', 'Late By (mins)', 'Status', 'Remarks']];
       
       state.staff.forEach((s, i) => {
         const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
         const d = duration(r.inTime, r.outTime, r.status);
-        rows.push([k, i + 1, s.name, s.department || '', s.role || '', r.inTime, r.outTime, d == null ? '' : fmtMins(d), lateMins(r.inTime) ?? '', r.status, r.remarks]);
+        rows.push([k, i + 1, s.name, s.department || '', s.role || '', formatTime12h(r.inTime), formatTime12h(r.outTime), d == null ? '' : fmtMins(d), lateMins(r.inTime) ?? '', r.status, r.remarks]);
       });
 
       const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
