@@ -268,19 +268,9 @@
     <section id="monthlyTab" class="tab-content space-y-5">
       <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-4 shadow-sm space-y-4">
         <div class="flex flex-wrap gap-4 items-end justify-between border-b border-brand-border dark:border-slate-800 pb-3.5">
-          <div class="flex flex-wrap gap-3 items-end">
-            <div>
-              <label for="monthlyMonthPicker" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Select Month</label>
-              <input type="month" id="monthlyMonthPicker" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white">
-            </div>
-            <div>
-              <label for="workingDaysInput" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Total Working Days</label>
-              <input type="number" id="workingDaysInput" value="22" min="1" max="31" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white w-28">
-            </div>
-            <div>
-              <label for="approvedHolidaysInput" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Approved Holidays</label>
-              <input type="number" id="approvedHolidaysInput" value="1" min="0" max="15" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white w-28">
-            </div>
+          <div>
+            <label for="monthlyMonthPicker" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Select Month</label>
+            <input type="month" id="monthlyMonthPicker" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white">
           </div>
           <div>
             <button id="exportMonthlyBtn" class="bg-[#174A78] hover:bg-[#123456] text-white px-3.5 py-1.5 rounded-md text-xs font-medium transition duration-150 flex items-center gap-1.5 active:scale-95">
@@ -476,10 +466,6 @@
     }
 
     const STORAGE_KEY = 'aitTeamAttendancePro_v7';
-
-    // Secure SHA-256 Hash of default password "AITAdmin@2026"
-    // To change password, compute SHA-256 hash of your desired password and update this constant.
-    const ADMIN_PASSWORD_HASH = "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"; // Note: demo hash for "admin". Let's use crypto helper.
 
     async function hashPassword(str) {
       const encoder = new TextEncoder();
@@ -700,7 +686,7 @@
     }
 
     function duration(a, b, status) {
-      if (status === 'Leave' || status === 'Absent') return null;
+      if (status === 'Absent' || status === 'Permission' || status === 'Half Day') return null;
       const minA = parseToMinutes(a);
       const minB = parseToMinutes(b);
       if (minA == null || minB == null) return null;
@@ -715,7 +701,7 @@
     }
 
     function lateMins(t, status) {
-      if (status === 'Absent' || status === 'Leave') return null;
+      if (status === 'Absent' || status === 'Permission' || status === 'Half Day') return null;
       const a = parseToMinutes(t);
       const r = parseToMinutes(document.getElementById('reportingTime').value || '09:00');
       return a == null ? null : Math.max(0, a - r);
@@ -788,7 +774,7 @@
           </td>
           <td class="py-2.5 px-3.5">
             <div class="flex items-center gap-1.5">
-              <input type="time" data-id="${staff.id}" data-field="inTime" value="${esc(rec.status === 'Absent' || rec.status === 'Leave' ? '' : rec.inTime)}" ${rec.status === 'Absent' || rec.status === 'Leave' ? 'disabled' : ''} class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold transition disabled:opacity-50">
+              <input type="time" data-id="${staff.id}" data-field="inTime" value="${esc(rec.status === 'Absent' ? '' : rec.inTime)}" ${rec.status === 'Absent' ? 'disabled' : ''} class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold transition disabled:opacity-50">
               <button type="button" class="quick-in-btn bg-[#174A78] hover:bg-[#123456] text-white text-[11px] px-2 py-1 rounded font-medium transition duration-150 active:scale-95" data-id="${staff.id}" title="Set current local time">In</button>
             </div>
           </td>
@@ -804,8 +790,8 @@
             ${rec.status !== 'Present' ? '<span class="text-slate-400 font-normal">—</span>' : (lm == null ? '<span class="text-slate-400 font-normal">—</span>' : (lm > 0 ? `<span class="text-[#B93838]">${lm} min</span>` : '<span class="text-[#187653]">On time</span>'))}
           </td>
           <td class="py-2.5 px-3.5">
-            <select data-id="${staff.id}" data-field="status" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium ${rec.status === 'Present' ? 'text-[#187653]' : (rec.status === 'Leave' ? 'text-brand-gold' : '')}">
-              ${['Present','Absent','Leave','Permission','Half Day'].map(s => `<option ${rec.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+            <select data-id="${staff.id}" data-field="status" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium ${rec.status === 'Present' ? 'text-[#187653]' : ''}">
+              ${['Present','Absent','Permission','Half Day'].map(s => `<option ${rec.status === s ? 'selected' : ''}>${s}</option>`).join('')}
             </select>
           </td>
           <td class="py-2.5 px-3.5">
@@ -834,7 +820,7 @@
       if (field === 'outTime' && val) val = formatTime12h(val);
       rec[field] = val;
 
-      if (field === 'status' && (val === 'Absent' || val === 'Leave')) {
+      if (field === 'status' && val === 'Absent') {
         rec.inTime = '';
       }
       renderDaily();
@@ -857,8 +843,8 @@
 
       if (!validateAttendanceDate()) return;
       const rec = getFormRecord(id);
-      if (rec.status === 'Absent' || rec.status === 'Leave') {
-        showValidationPopup(`Cannot record punch times for staff with status '${rec.status}'.`);
+      if (rec.status === 'Absent') {
+        showValidationPopup(`Cannot record punch times for staff with status 'Absent'.`);
         return;
       }
 
@@ -986,8 +972,9 @@
       state.staff.forEach((s, i) => {
         const r = day[s.id] || getFormRecord(s.id);
         let punchVal = '—';
-        if (r.status === 'Leave') punchVal = 'Leave';
-        else if (r.status === 'Absent') punchVal = 'Absent';
+        if (r.status === 'Absent') punchVal = 'Absent';
+        else if (r.status === 'Permission') punchVal = 'Permission';
+        else if (r.status === 'Half Day') punchVal = 'Half Day';
         else if (r.inTime) punchVal = formatTime12h(r.inTime);
 
         const rowBg = (i % 2 === 0) ? '#ffffff' : '#F5F7FA';
@@ -1019,7 +1006,7 @@
 
     function getMonthlySummaryData() {
       const monthStr = monthlyMonthPicker.value;
-      const workingDays = parseInt(document.getElementById('workingDaysInput').value) || 22;
+      const workingDays = 30; // 30-day monthly attendance basis rule
       const results = [];
 
       state.staff.forEach((staff, i) => {
@@ -1038,8 +1025,6 @@
                   totalStaffMins += dur;
                   if (dur > 480) totalOvertimeMins += (dur - 480);
                 }
-              } else if (rec.status === 'Leave') {
-                leaveDays++;
               }
             }
           }
@@ -1051,7 +1036,7 @@
           staffName: staff.name,
           presentDays,
           attendancePct,
-          leaveDays,
+          leaveDays: '—',
           lateCount,
           totalOvertimeMins,
           totalStaffMins,
@@ -1059,7 +1044,7 @@
           totalWorkingHoursStr: fmtMins(totalStaffMins)
         });
       });
-      return { monthStr, workingDays, results };
+      return { monthStr, results };
     }
 
     function renderMonthlySummary() {
@@ -1076,7 +1061,7 @@
           <td class="py-2.5 px-3.5 font-semibold text-[#123456] dark:text-brand-gold text-xs">${esc(data.staffName)}</td>
           <td class="py-2.5 px-3.5 font-bold text-[#187653]">${data.presentDays} days</td>
           <td class="py-2.5 px-3.5 font-bold text-[#174A78] dark:text-brand-gold">${data.attendancePct}%</td>
-          <td class="py-2.5 px-3.5 text-brand-gold font-medium">${data.leaveDays} days</td>
+          <td class="py-2.5 px-3.5 text-brand-muted dark:text-slate-400 font-medium">${data.leaveDays}</td>
           <td class="py-2.5 px-3.5 text-[#B93838] font-semibold">${data.lateCount}</td>
           <td class="py-2.5 px-3.5 text-[#174A78] dark:text-slate-300 font-semibold">${data.totalOvertimeStr}</td>
           <td class="py-2.5 px-3.5 font-bold text-[#123456] dark:text-brand-gold">${data.totalWorkingHoursStr}</td>
@@ -1086,8 +1071,6 @@
     }
 
     monthlyMonthPicker.addEventListener('change', renderMonthlySummary);
-    document.getElementById('workingDaysInput').addEventListener('input', renderMonthlySummary);
-    document.getElementById('approvedHolidaysInput').addEventListener('input', renderMonthlySummary);
 
     document.getElementById('exportMonthlyBtn').addEventListener('click', () => {
       const { monthStr, results } = getMonthlySummaryData();
@@ -1232,18 +1215,11 @@
 
     document.getElementById('resetPasswordSubmitBtn').addEventListener('click', async () => {
       const enteredPwd = resetPasswordInput.value;
-      
-      // Default password hash for "AITAdmin@2026" (SHA-256)
-      // Passwords can be verified securely against this hashed value.
       const defaultAdminHash = "7963d76b1f24d9c79f949c25f48347f311c6d36e2f170c406b72648fb16a1b94"; // sha256("AITAdmin@2026")
-
-      // Fallback verification or computed hash
       const computedHash = await hashPassword(enteredPwd);
 
       if (computedHash === defaultAdminHash || enteredPwd === "AITAdmin@2026") {
         resetPasswordModal.classList.add('hidden');
-        
-        // Second confirmation message as required
         if (confirm('Are you sure you want to permanently delete all system data?')) {
           localStorage.removeItem(STORAGE_KEY);
           location.reload();
