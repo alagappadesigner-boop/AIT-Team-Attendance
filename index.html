@@ -1,408 +1,1091 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Alagappa Performing Arts Academy ID Card Generator</title>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AIT Team Attendance - Alagappa Institute of Technology</title>
+
+<!-- Inter Font & Lucide Icons -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', 'sans-serif'],
+        },
+        colors: {
+          brand: {
+            navy: '#12345A',
+            navyDark: '#0E2744',
+            navySecondary: '#194B7A',
+            blue: '#1769AA',
+            blueLight: '#EBF3FA',
+            bg: '#F3F5F8',
+            text: '#172B3A',
+            muted: '#617184',
+            border: '#D7E0E9',
+            green: '#16805D',
+            greenLight: '#E8F5F0',
+            amber: '#B7791F',
+            amberLight: '#FEF8EC',
+            red: '#C0393B',
+            redLight: '#FDF2F2',
+          }
+        }
+      }
+    }
+  }
+</script>
+
+<!-- html2canvas for Save as Image feature -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;background:#eef1f5;font-family:Arial,Helvetica,sans-serif;color:#102f59}
-.wrap{max-width:1250px;margin:auto;padding:24px}
-h1{margin:0 0 6px;font-size:28px}
-.sub{margin:0 0 18px;color:#667085}
-.panel{background:#fff;border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 4px 18px rgba(0,0,0,.08)}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
-input,select,button{font:inherit}
-input[type=text],input[type=date],input[type=file],select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:#172033}
-input:disabled{background:#f3f4f6;color:#667085}
-.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
-button{border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer}
-.primary{background:#082d5c;color:#fff}
-.secondary{background:#e7ecf3;color:#102f59}
-.status{margin-top:10px;font-size:13px;color:#475467}
-.hint{font-size:12px;color:#667085;margin-top:6px}
-.card-wrap{display:flex;justify-content:center;align-items:flex-start;width:100%;overflow:hidden;padding:4px}
-.card{position:relative;display:block;width:min(1024px,100%);max-width:100%;aspect-ratio:2048/1294;overflow:hidden;isolation:isolate;contain:paint;background:#fffdf6;flex:none}
-.value{position:absolute;color:#062d5c;font-family:"Trebuchet MS",Arial,sans-serif;font-size:22px;font-weight:700;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-.card::before,.card::after{content:none !important;display:none !important}
-.card .value::before,.card .value::after{content:none !important;display:none !important}
-
-@media(max-width:750px){
-  .grid{grid-template-columns:1fr}
-  .field-label{font-size:12px}
-  .field-colon{font-size:12px}
-  .value{font-size:12px}
-  #vInstitute{font-size:10px}
-}
-@media print{body{background:#fff}.wrap>h1,.wrap>.sub,.wrap>.panel{display:none!important}.card-wrap{padding:0}.card{width:101.6mm;height:63.8mm}}
-
-.card .value{
-  position:absolute !important;
-  left:45.65% !important;
-  width:48% !important;
-  max-width:48% !important;
-  color:#062d5c !important;
-  font-family:"Trebuchet MS",Arial,sans-serif !important;
-  font-size:20px !important;
-  font-weight:700 !important;
-  line-height:1 !important;
-  letter-spacing:0 !important;
-  text-align:left !important;
-  white-space:nowrap !important;
-  overflow:hidden !important;
-  text-overflow:ellipsis !important;
-  padding:0 !important;
-  margin:0 !important;
-  border:0 !important;
-  background:transparent !important;
-  text-shadow:none !important;
-  box-shadow:none !important;
-  z-index:3 !important;
-  transform:none !important;
-  filter:none !important;
-  opacity:1 !important;
-  backface-visibility:hidden !important;
-  -webkit-font-smoothing:antialiased !important;
-  contain:layout paint !important;
-}
-#vId{top:46.45% !important}
-#vName{top:51.90% !important}
-#vGrade{top:57.35% !important}
-#vDob{top:62.80% !important}
-#vInstitute{top:68.25% !important;font-size:17px !important}
-#vJoining{top:73.70% !important}
-
-@media(max-width:750px){
-  .card .value{font-size:12px !important}
-  #vInstitute{font-size:10px !important}
-}
-
-.card{position:relative !important;overflow:hidden !important;isolation:isolate !important;background:#fffdf6 !important;}
-.card-background{position:absolute !important;inset:0 !important;width:100% !important;height:100% !important;display:block !important;margin:0 !important;padding:0 !important;border:0 !important;z-index:0 !important;pointer-events:none !important;user-select:none !important;}
-.card-fields{position:absolute !important;inset:0 !important;width:100% !important;height:100% !important;margin:0 !important;padding:0 !important;border:0 !important;z-index:2 !important;pointer-events:none !important;}
-.card-fields .value{display:block !important;position:absolute !important;transform:none !important;animation:none !important;transition:none !important;will-change:auto !important;}
-.card-fields::before,.card-fields::after,.card-fields .value::before,.card-fields .value::after{content:none !important;display:none !important;}
+  body {
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
 </style>
 </head>
-<body>
-<div class="wrap">
-<h1>ALAGAPPA PERFORMING ARTS ACADEMY ID CARD GENERATOR</h1>
-<p class="sub">Create a premium APAA Grade Examination Student ID Card — high-resolution PDF export for printing.</p>
 
-<div class="panel">
-  <div class="grid">
-    <div>
-      <label>Excel / CSV File (Import Excel)</label>
-      <input id="file" type="file" accept=".xlsx,.xls,.csv">
-      <div class="hint">Upload your Excel or CSV file. Columns are detected automatically.</div>
+<body class="bg-brand-bg text-brand-text dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150 antialiased">
+
+  <!-- INSTITUTIONAL ENTERPRISE HEADER -->
+  <header class="bg-brand-navy dark:bg-slate-900 text-white shadow-md border-b border-brand-navySecondary/50">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
+      
+      <!-- Brand Logo & Institutional Titles -->
+      <div class="flex items-center gap-3.5 w-full md:w-auto">
+        <div class="w-11 h-11 bg-white rounded-lg p-1 shadow-sm flex items-center justify-center shrink-0 border border-slate-200 overflow-hidden">
+          <img id="aitLogoImg" src="ait-logo.png" alt="AIT Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; document.getElementById('aitLogoFallback').style.display='flex';">
+          <div id="aitLogoFallback" class="w-full h-full bg-brand-navy text-white font-black text-base rounded flex items-center justify-center tracking-tighter">AIT</div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base md:text-lg font-bold tracking-tight text-white leading-none">AIT TEAM ATTENDANCE</h1>
+            <span class="text-[10px] font-semibold tracking-wider bg-brand-navySecondary/80 text-blue-100 px-2 py-0.5 rounded uppercase border border-blue-400/20">Enterprise</span>
+          </div>
+          <p class="text-slate-300 text-xs font-medium tracking-wide uppercase mt-1">Alagappa Institute of Technology</p>
+        </div>
+      </div>
+
+      <!-- Live Clock & Theme Control -->
+      <div class="flex items-center gap-3 flex-wrap justify-end w-full md:w-auto">
+        <div id="liveClockDisplay" class="bg-brand-navyDark/80 dark:bg-slate-800/80 border border-slate-700/60 px-3 py-1.5 rounded-md text-right flex items-center gap-3">
+          <div class="text-slate-300 text-xs font-medium flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-slate-400"></i>
+            <span id="headerDateStr">Loading date...</span>
+          </div>
+          <div class="h-3 w-px bg-slate-700"></div>
+          <div class="text-amber-400 text-xs font-semibold tracking-wider flex items-center gap-1.5">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-400"></i>
+            <span id="headerTimeStr" class="font-mono">00:00:00 AM</span>
+          </div>
+        </div>
+
+        <button id="themeToggleBtn" class="bg-brand-navySecondary/60 hover:bg-brand-navySecondary text-slate-200 border border-slate-600/50 px-2.5 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+          <i data-lucide="moon" class="w-3.5 h-3.5"></i>
+          <span>Theme</span>
+        </button>
+      </div>
+
     </div>
-    <div>
-      <label>Search Student</label>
-      <input id="search" type="text" placeholder="Type enrollment number or student name...">
+  </header>
+
+  <!-- NAVIGATION BAR -->
+  <nav class="bg-white dark:bg-slate-900 border-b border-brand-border dark:border-slate-800 shadow-sm sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 md:px-6 flex gap-1 overflow-x-auto">
+      <button class="tab-btn py-3 px-4 font-semibold text-xs md:text-sm border-b-2 border-brand-blue text-brand-blue dark:text-blue-400 flex items-center gap-2 whitespace-nowrap" data-target="dailyTab">
+        <i data-lucide="check-square" class="w-4 h-4"></i> Daily Attendance
+      </button>
+      <button class="tab-btn py-3 px-4 font-medium text-xs md:text-sm border-b-2 border-transparent text-brand-muted hover:text-brand-text dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-2 whitespace-nowrap" data-target="monthlyTab">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Monthly Summary
+      </button>
+      <button class="tab-btn py-3 px-4 font-medium text-xs md:text-sm border-b-2 border-transparent text-brand-muted hover:text-brand-text dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-2 whitespace-nowrap" data-target="rosterTab">
+        <i data-lucide="users" class="w-4 h-4"></i> Staff Roster
+      </button>
+      <button class="tab-btn py-3 px-4 font-medium text-xs md:text-sm border-b-2 border-transparent text-brand-muted hover:text-brand-text dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-2 whitespace-nowrap" data-target="settingsTab">
+        <i data-lucide="settings" class="w-4 h-4"></i> Data & Settings
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN APPLICATION BODY -->
+  <main class="max-w-7xl mx-auto px-4 md:px-6 py-5 flex-1 w-full space-y-5">
+
+    <!-- ================= TAB 1: DAILY ATTENDANCE ================= -->
+    <section id="dailyTab" class="tab-content active space-y-5">
+      
+      <!-- Enterprise Executive Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+        
+        <!-- Card 1: Team Members -->
+        <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Team Members</div>
+            <div id="totalCount" class="text-xl md:text-2xl font-bold mt-1 text-brand-text dark:text-white">0</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Active staff roster</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-brand-blueLight dark:bg-slate-800 text-brand-blue dark:text-blue-400">
+            <i data-lucide="users" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Card 2: Present Today -->
+        <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Present Today</div>
+            <div id="presentCount" class="text-xl md:text-2xl font-bold mt-1 text-brand-green">0</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Marked present / logged in</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-brand-greenLight dark:bg-slate-800 text-brand-green dark:text-emerald-400">
+            <i data-lucide="user-check" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Card 3: Late Arrivals -->
+        <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Late Arrivals</div>
+            <div id="lateCount" class="text-xl md:text-2xl font-bold mt-1 text-brand-red">0</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">Exceeded reporting time</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-brand-redLight dark:bg-slate-800 text-brand-red dark:text-rose-400">
+            <i data-lucide="clock" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+        <!-- Card 4: Total Hours Logged -->
+        <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm flex items-center justify-between">
+          <div>
+            <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Total Hours Logged</div>
+            <div id="hoursCount" class="text-xl md:text-2xl font-bold mt-1 text-brand-navySecondary dark:text-blue-300">0h 0m</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">For selected date</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-brand-blueLight dark:bg-slate-800 text-brand-navySecondary dark:text-blue-300">
+            <i data-lucide="hourglass" class="w-5 h-5"></i>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Attendance Toolbar -->
+      <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg shadow-sm overflow-hidden">
+        <div class="p-3.5 border-b border-brand-border dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+          
+          <!-- Date & Reporting Time -->
+          <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label for="datePicker" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Date</label>
+              <input type="date" id="datePicker" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white text-brand-text focus:outline-none focus:ring-1 focus:ring-brand-blue">
+            </div>
+            <div>
+              <label for="reportingTime" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Reporting Time</label>
+              <input type="time" id="reportingTime" value="09:00" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white text-brand-text w-28 focus:outline-none focus:ring-1 focus:ring-brand-blue">
+            </div>
+          </div>
+
+          <!-- Actions Toolbar -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <input type="search" id="searchBox" placeholder="Search staff name..." class="border border-brand-border dark:border-slate-700 rounded-md pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-950 dark:text-white w-44 focus:outline-none focus:ring-1 focus:ring-brand-blue">
+              <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5 pointer-events-none"></i>
+            </div>
+            
+            <button id="addStaffBtn" class="bg-brand-blue hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+              <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Add Member
+            </button>
+            <button id="exportBtn" class="bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-brand-border dark:border-slate-700 text-brand-text dark:text-slate-200 px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Export CSV
+            </button>
+            <button id="saveAsImageBtn" class="bg-white hover:bg-slate-50 dark:bg-slate-800 dark:hover:bg-slate-700 border border-brand-border dark:border-slate-700 text-brand-text dark:text-slate-200 px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+              <i data-lucide="image" class="w-3.5 h-3.5"></i> Save Image
+            </button>
+            <button id="saveBtn" class="bg-brand-green hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-md text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+              <i data-lucide="save" class="w-3.5 h-3.5"></i> Save Attendance
+            </button>
+          </div>
+        </div>
+
+        <!-- Attendance Master Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[1020px]">
+            <thead>
+              <tr class="bg-brand-navy text-white text-[11px] uppercase tracking-wider font-semibold">
+                <th class="py-2.5 px-3.5 w-12 text-center">S.No.</th>
+                <th class="py-2.5 px-3.5">Staff Name & Role</th>
+                <th class="py-2.5 px-3.5">In Time & Quick Punch</th>
+                <th class="py-2.5 px-3.5">Out Time & Quick Punch</th>
+                <th class="py-2.5 px-3.5">Working Hours</th>
+                <th class="py-2.5 px-3.5">Late By</th>
+                <th class="py-2.5 px-3.5">Status</th>
+                <th class="py-2.5 px-3.5">Remarks</th>
+              </tr>
+            </thead>
+            <tbody id="attendanceBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+          <div id="emptyMessage" class="p-8 text-center text-brand-muted dark:text-slate-400 hidden">No team members match your search query.</div>
+        </div>
+
+        <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-900/60 border-t border-brand-border dark:border-slate-800 flex flex-wrap justify-between items-center text-[11px] text-brand-muted dark:text-slate-400">
+          <span id="saveStatus" class="flex items-center gap-1.5">
+            <i data-lucide="info" class="w-3.5 h-3.5 text-brand-blue"></i> Changes are stored in browser storage when you click “Save Attendance”.
+          </span>
+          <span>Default out-time: 06:00 PM. Valid date required for all punch & save actions.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: MONTHLY SUMMARY ================= -->
+    <section id="monthlyTab" class="tab-content space-y-5">
+      <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-4 shadow-sm space-y-4">
+        <div class="flex flex-wrap gap-4 items-end justify-between border-b border-brand-border dark:border-slate-800 pb-3.5">
+          <div class="flex flex-wrap gap-3 items-end">
+            <div>
+              <label for="monthlyMonthPicker" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Select Month</label>
+              <input type="month" id="monthlyMonthPicker" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white">
+            </div>
+            <div>
+              <label for="workingDaysInput" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Total Working Days</label>
+              <input type="number" id="workingDaysInput" value="22" min="1" max="31" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white w-28">
+            </div>
+            <div>
+              <label for="approvedHolidaysInput" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Approved Holidays</label>
+              <input type="number" id="approvedHolidaysInput" value="1" min="0" max="15" class="border border-brand-border dark:border-slate-700 rounded-md px-2.5 py-1.5 text-xs font-medium bg-white dark:bg-slate-950 dark:text-white w-28">
+            </div>
+          </div>
+          <div>
+            <button id="exportMonthlyBtn" class="bg-brand-blue hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+              <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> Export Monthly CSV
+            </button>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[950px]">
+            <thead>
+              <tr class="bg-brand-navy text-white text-[11px] uppercase tracking-wider font-semibold">
+                <th class="py-2.5 px-3.5 w-12 text-center">S.No.</th>
+                <th class="py-2.5 px-3.5">Staff Name</th>
+                <th class="py-2.5 px-3.5">Present Days</th>
+                <th class="py-2.5 px-3.5">Attendance %</th>
+                <th class="py-2.5 px-3.5">Leave Days</th>
+                <th class="py-2.5 px-3.5">Late Count</th>
+                <th class="py-2.5 px-3.5">Total Overtime</th>
+                <th class="py-2.5 px-3.5">Total Working Hours</th>
+              </tr>
+            </thead>
+            <tbody id="monthlyBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: STAFF ROSTER ================= -->
+    <section id="rosterTab" class="tab-content space-y-5">
+      <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-4 shadow-sm space-y-4">
+        <div class="flex justify-between items-center border-b border-brand-border dark:border-slate-800 pb-3">
+          <div>
+            <h2 class="font-bold text-sm text-brand-text dark:text-white uppercase tracking-wider">Institutional Staff Roster</h2>
+            <p class="text-xs text-brand-muted">Manage active team members, designations, and departmental classifications.</p>
+          </div>
+          <button id="rosterAddBtn" class="bg-brand-blue hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add New Staff
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr class="bg-brand-navy text-white text-[11px] uppercase tracking-wider font-semibold">
+                <th class="py-2.5 px-3.5 w-16">ID</th>
+                <th class="py-2.5 px-3.5">Staff Name</th>
+                <th class="py-2.5 px-3.5">Department</th>
+                <th class="py-2.5 px-3.5">Designation / Role</th>
+                <th class="py-2.5 px-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="rosterBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: DATA & SETTINGS ================= -->
+    <section id="settingsTab" class="tab-content space-y-5">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        
+        <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
+          <div class="flex items-center gap-2 border-b border-brand-border dark:border-slate-800 pb-2.5">
+            <i data-lucide="database" class="w-4 h-4 text-brand-blue"></i>
+            <h3 class="font-bold text-xs uppercase tracking-wider text-brand-text dark:text-white">JSON Data Backup & Restore</h3>
+          </div>
+          <p class="text-xs text-brand-muted leading-relaxed">Generate full system JSON backups including staff rosters, historical logs, and custom shift settings, or import existing files into storage.</p>
+          <div class="flex flex-wrap gap-2.5 pt-1">
+            <button id="backupJsonBtn" class="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-brand-border dark:border-slate-700 text-brand-text dark:text-slate-200 px-3.5 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Backup
+            </button>
+            <label class="bg-brand-blue hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-md text-xs font-medium cursor-pointer transition flex items-center gap-1.5">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Restore JSON
+              <input type="file" id="restoreJsonInput" accept=".json" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-slate-900 border border-brand-red/30 rounded-lg p-4 shadow-sm space-y-3">
+          <div class="flex items-center gap-2 border-b border-brand-red/20 pb-2.5">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-brand-red"></i>
+            <h3 class="font-bold text-xs uppercase tracking-wider text-brand-red">System Reset</h3>
+          </div>
+          <p class="text-xs text-brand-muted leading-relaxed">Wipe active staff rosters, custom departments, and stored daily/monthly attendance history. Reverts system state to initial defaults.</p>
+          <div class="pt-1">
+            <button id="resetDataBtn" class="bg-brand-red hover:bg-red-700 text-white px-3.5 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1.5">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Reset All System Data
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CONFIRMATION SUCCESS MODAL DIALOG -->
+  <div id="savedSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-5 max-w-sm w-full mx-4 shadow-xl text-center space-y-3.5">
+      <div class="w-10 h-10 bg-brand-greenLight dark:bg-emerald-950/60 text-brand-green dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+      </div>
+      <div class="space-y-1">
+        <h3 class="font-bold text-sm text-brand-text dark:text-white uppercase tracking-wider">Attendance Saved Successfully</h3>
+        <p id="savedSuccessModalText" class="text-xs text-brand-muted dark:text-slate-400 leading-relaxed">Attendance records have been stored in system memory.</p>
+      </div>
+      <button id="savedModalOkBtn" class="w-full bg-brand-navy hover:bg-brand-navyDark text-white py-2 rounded-md font-medium text-xs transition">
+        Acknowledge & Clear Form
+      </button>
     </div>
   </div>
 
-  <div class="grid" style="margin-top:14px">
-    <div>
-      <label>Select Student</label>
-      <select id="studentSelect"><option value="">Enter details below or upload Excel</option></select>
+  <!-- WARNING MODAL DIALOG FOR DATE VALIDATION -->
+  <div id="warningModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs hidden">
+    <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-5 max-w-sm w-full mx-4 shadow-xl text-center space-y-3.5">
+      <div class="w-10 h-10 bg-brand-amberLight dark:bg-amber-950/60 text-brand-amber rounded-full flex items-center justify-center mx-auto">
+        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+      </div>
+      <div class="space-y-1">
+        <h3 class="font-bold text-sm text-brand-text dark:text-white uppercase tracking-wider">Date Validation Required</h3>
+        <p id="warningModalText" class="text-xs text-brand-muted dark:text-slate-400 leading-relaxed">Please select a valid date before proceeding.</p>
+      </div>
+      <button id="warningModalOkBtn" class="w-full bg-brand-navy hover:bg-brand-navyDark text-white py-2 rounded-md font-medium text-xs transition">
+        OK
+      </button>
     </div>
-    <div>
-      <label>Status</label>
-      <div id="status" class="status" style="margin-top:10px">Ready. You can type student details below.</div>
-    </div>
   </div>
-</div>
 
-<div class="panel">
-  <div class="manual-title">Student Details</div>
-  <div class="grid">
-    <div><label>Student ID / Enrollment No.</label><input id="id" type="text" placeholder="e.g. ALGBIN0001"></div>
-    <div><label>Name</label><input id="name" type="text" placeholder="Student name"></div>
-    <div><label>Grade</label><input id="grade" type="text" placeholder="e.g. Pre - Grade"></div>
-    <div><label>Date of Birth</label><input id="dob" type="text" placeholder="DD-MM-YYYY"></div>
-    <div><label>Name of the Institution</label><input id="institute" type="text" placeholder="Institution name"></div>
-    <div><label>Date of Joining</label><input id="joining" type="text" value="Aug 2026" placeholder="e.g. Aug 2026"></div>
-  </div>
-  <div class="actions">
-    <button class="primary" id="download">Download High-Resolution PDF</button>
-    <button class="primary" id="downloadZip" style="background:#0d5c2d;">Download All as ZIP</button>
-    <button class="secondary" id="print">Print / Save as PDF</button>
-    <button class="secondary" id="clear">Clear</button>
-  </div>
-</div>
-
-<div class="panel">
-  <div class="card-wrap">
-    <div class="card" id="card">
-      <img class="card-background" alt="Card Background" src="22.png">
-      <div class="card-fields" aria-label="Student information">
-        <div class="value" id="vId">—</div>
-        <div class="value" id="vName">—</div>
-        <div class="value" id="vGrade">—</div>
-        <div class="value" id="vDob">—</div>
-        <div class="value" id="vInstitute">—</div>
-        <div class="value" id="vJoining">—</div>
+  <!-- HIDDEN CONTAINER FOR IMAGE GENERATION -->
+  <div id="imageExportWrapper" style="position: absolute; left: -9999px; top: -9999px;">
+    <div id="imageExportContainer" style="background: #ffffff; color: #172B3A; padding: 28px; width: 880px; font-family: 'Inter', sans-serif;">
+      <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #12345A; padding-bottom: 12px;">
+        <h2 style="font-size: 20px; font-weight: 800; margin: 0; color: #12345A; letter-spacing: -0.02em;">AIT TEAM ATTENDANCE SHEET</h2>
+        <p style="font-size: 11px; font-weight: 600; color: #617184; text-transform: uppercase; margin-top: 4px;">Alagappa Institute of Technology</p>
+        <div id="imgExportDateLabel" style="font-size: 12px; font-weight: 600; color: #1769AA; margin-top: 6px;">Date: 2026-10-23</div>
+      </div>
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #D7E0E9;">
+        <thead>
+          <tr style="background-color: #12345A; color: #ffffff;">
+            <th style="border: 1px solid #12345A; padding: 8px 10px; text-align: center; font-size: 11px; width: 10%; text-transform: uppercase;">S.No</th>
+            <th style="border: 1px solid #12345A; padding: 8px 10px; text-align: left; font-size: 11px; width: 60%; text-transform: uppercase;">Team Member & Role</th>
+            <th style="border: 1px solid #12345A; padding: 8px 10px; text-align: center; font-size: 11px; width: 30%; text-transform: uppercase;">Punch Records</th>
+          </tr>
+        </thead>
+        <tbody id="imgExportTableBody">
+          <!-- Populated dynamically -->
+        </tbody>
+      </table>
+      <div style="margin-top: 16px; font-size: 10px; color: #617184; text-align: right; font-weight: 500;">
+        Alagappa Institute of Technology • Enterprise Attendance System
       </div>
     </div>
   </div>
-</div>
 
-<script>
-const $=id=>document.getElementById(id);
-let students=[];
-const fields=['id','name','grade','dob','institute','joining'];
+  <!-- INSTITUTIONAL FOOTER -->
+  <footer class="max-w-7xl mx-auto px-4 md:px-6 py-4 text-center text-xs text-brand-muted dark:text-slate-400 border-t border-brand-border dark:border-slate-800 mt-auto w-full flex flex-col md:flex-row justify-between items-center gap-2">
+    <div>
+      <span class="font-bold text-brand-navy dark:text-slate-300">Alagappa Institute of Technology</span> • Administration Department
+    </div>
+    <div class="text-[11px] text-slate-400">
+      Local Storage Persistence Active. Connect server DB for multi-device sync.
+    </div>
+  </footer>
 
-function norm(v){return String(v??'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');}
+  <!-- SYSTEM JAVASCRIPT ENGINE -->
+  <script>
+    const STORAGE_KEY = 'aitTeamAttendancePro_v5';
 
-function dateText(v){
-  if(v instanceof Date && !isNaN(v)) return v.toLocaleDateString('en-GB');
-  if(typeof v==='number' && window.XLSX){
-    const d=XLSX.SSF.parse_date_code(v);
-    if(d) return String(d.d).padStart(2,'0')+'-'+String(d.m).padStart(2,'0')+'-'+d.y;
-  }
-  return String(v??'').trim();
-}
+    const defaultStaff = Array.from({length: 20}, (_, i) => ({
+      id: 's' + (i + 1),
+      name: 'Staff ' + (i + 1),
+      department: i < 10 ? 'Engineering' : 'Operations',
+      role: i < 10 ? 'Software Engineer' : 'Support Specialist'
+    }));
 
-function mapRow(r){
-  const getVal = (...keys) => {
-    const keysObj = Object.keys(r);
-    for (const key of keys) {
-      const foundKey = keysObj.find(k => k && norm(k) === norm(key));
-      if (foundKey !== undefined && r[foundKey] !== undefined && String(r[foundKey]).trim() !== '') {
-        return r[foundKey];
+    let state = {
+      staff: defaultStaff,
+      days: {},    // Saved historical records
+      forms: {},   // Active input drafts
+      theme: 'light'
+    };
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.staff) state.staff = parsed.staff;
+          if (parsed.days) state.days = parsed.days;
+          if (parsed.theme) state.theme = parsed.theme;
+        }
+      } catch (e) {
+        console.error('Failed to load local storage:', e);
       }
     }
-    for (const key of keys) {
-      const foundKey = keysObj.find(k => k && norm(k).includes(norm(key)));
-      if (foundKey !== undefined && r[foundKey] !== undefined && String(r[foundKey]).trim() !== '') {
-        return r[foundKey];
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return true;
+      } catch (e) {
+        console.error('Failed to save to local storage:', e);
+        return false;
       }
     }
-    return '';
-  };
 
- return {
-  id: getVal('enrollmentno', 'enrollment', 'studentid', 'studentno', 'id', 'regno', 'roll'),
-  name: getVal('name', 'studentname', 'fullname', 'student'),
-  grade: getVal('grade', 'class', 'level'),
-  dob: dateText(getVal('dateofbirth', 'dob', 'birthdate', 'birthday')),
-  institute: getVal('nameoftheinstitute', 'institute', 'institution', 'school', 'academy', 'center'),
-  joining: dateText(getVal('dateofjoining', 'joining', 'joined', 'datejoined')) || 'Aug 2026'
- };
-}
+    loadState();
 
-function setForm(s){
- if(!s)return;
- $('id').value=s.id\vert{}\vert{}'';$('name').value=s.name||'';
- $('grade').value=s.grade\vert{}\vert{}'';$('dob').value=s.dob||'';
- $('institute').value=s.institute\vert{}\vert{}'';$('joining').value=s.joining||'Aug 2026';
- update();
-}
+    // Date & Time helpers
+    function formatLocalDate(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
 
-function current(){
- return {
-  id:$('id').value.trim(),
-  name:$('name').value.trim(),
-  grade:$('grade').value.trim(),
-  dob:$('dob').value.trim(),
-  institute:$('institute').value.trim(),
-  joining:$('joining').value.trim() || 'Aug 2026'
- };
-}
+    const datePicker = document.getElementById('datePicker');
+    datePicker.value = formatLocalDate(new Date());
 
-const cardValueEls = Object.freeze({
-  vId: document.getElementById('vId'),
-  vName: document.getElementById('vName'),
-  vGrade: document.getElementById('vGrade'),
-  vDob: document.getElementById('vDob'),
-  vInstitute: document.getElementById('vInstitute'),
-  vJoining: document.getElementById('vJoining')
-});
+    const monthlyMonthPicker = document.getElementById('monthlyMonthPicker');
+    monthlyMonthPicker.value = new Date().toISOString().slice(0, 7);
 
-function update(){
-  const s=current();
-  cardValueEls.vId.textContent=s.id||'—';
-  cardValueEls.vName.textContent=s.name||'—';
-  cardValueEls.vGrade.textContent=s.grade||'—';
-  cardValueEls.vDob.textContent=s.dob||'—';
-  cardValueEls.vInstitute.textContent=s.institute||'—';
-  cardValueEls.vJoining.textContent=s.joining||'—';
-}
+    // Reusable Date Validation Function
+    function isValidDateString(dateStr) {
+      if (!dateStr) return false;
+      const regex = /^\d{4}-\d{2}-\d{2}$/;
+      if (!regex.test(dateStr)) return false;
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dt = new Date(y, m - 1, d);
+      return dt.getFullYear() === y && (dt.getMonth() + 1) === m && dt.getDate() === d;
+    }
 
-fields.forEach(f=>$(''+f).addEventListener('input',update));
+    function validateAttendanceDate() {
+      const val = datePicker.value;
+      if (!isValidDateString(val)) {
+        document.getElementById('warningModal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+        return false;
+      }
+      return true;
+    }
 
-$('clear').onclick=()=>{
-  fields.forEach(f=>$(''+f).value='');
-  $('joining').value='Aug 2026';$('status').textContent='Cleared. You can type student details.';
-  update();
-};
+    // Warning Modal Close Handlers
+    document.getElementById('warningModalOkBtn').addEventListener('click', () => {
+      document.getElementById('warningModal').classList.add('hidden');
+    });
+    document.getElementById('warningModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('warningModal')) {
+        document.getElementById('warningModal').classList.add('hidden');
+      }
+    });
 
-$('print').onclick=()=>window.print();
+    // Live Header Clock (IST)
+    function updateLiveClock() {
+      const now = new Date();
+      const optionsDate = { timeZone: 'Asia/Kolkata', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+      const optionsTime = { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+      
+      let dateStr, timeStr;
+      try {
+        dateStr = now.toLocaleDateString('en-GB', optionsDate);
+        timeStr = now.toLocaleTimeString('en-US', optionsTime);
+      } catch (e) {
+        dateStr = now.toLocaleDateString();
+        timeStr = now.toLocaleTimeString();
+      }
 
-$('search').addEventListener('input',()=>{
- const q=norm($('search').value);
- const list=students.filter(s=>!q||norm(s.id).includes(q)||norm(s.name).includes(q)||norm(s.grade).includes(q));
- const sel=$('studentSelect'); 
- sel.innerHTML='';
- if(!list.length){
-   sel.innerHTML='<option value="">No matching student</option>';
-   return;
- }
- list.forEach((s)=>{
-   const o=document.createElement('option');
-   const origIdx = students.indexOf(s);
-   o.value = origIdx;
-   o.textContent=(s.id||'No ID')+' — '+(s.name||'Unnamed');
-   sel.appendChild(o);
- });
- sel._list=list;
- if(list.length) {
-   setForm(list[0]);
-   sel.value = students.indexOf(list[0]);
- }
-});
+      const dateEl = document.getElementById('headerDateStr');
+      const timeEl = document.getElementById('headerTimeStr');
+      if (dateEl) dateEl.textContent = dateStr;
+      if (timeEl) timeEl.textContent = timeStr;
+    }
+    updateLiveClock();
+    setInterval(updateLiveClock, 1000);
 
-$('studentSelect').addEventListener('change',()=>{
-  const idx = Number($('studentSelect').value);
-  const s = students[idx];
-  if(s) setForm(s);
-});
+    // Theme setup
+    function applyTheme() {
+      if (state.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+        document.getElementById('themeToggleBtn').innerHTML = '<i data-lucide="sun" class="w-3.5 h-3.5 text-amber-400"></i><span>Light</span>';
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.getElementById('themeToggleBtn').innerHTML = '<i data-lucide="moon" class="w-3.5 h-3.5"></i><span>Dark</span>';
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+    applyTheme();
 
-$('file').addEventListener('change',e=>{
- const file=e.target.files[0]; 
- if(!file) return;
- $('status').textContent='Reading '+file.name+'...';
- 
- if(!window.XLSX){
-   $('status').textContent='Excel reader could not load. Please check your internet connection.';
-   return;
- }
+    document.getElementById('themeToggleBtn').addEventListener('click', () => {
+      state.theme = state.theme === 'dark' ? 'light' : 'dark';
+      saveState();
+      applyTheme();
+    });
 
- const reader=new FileReader();
- reader.onload=ev=>{
-  try{
-   const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellDates:true});
-   const ws=wb.Sheets[wb.SheetNames[0]];
-   const matrix=XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
-   
-   if(!matrix.length){
-     throw new Error('The Excel sheet is empty.');
-   }
-   
-   // Force row index 4 (Row 5 in Excel) where headers are located
-   let hi = 4;
-   
-   const rows=XLSX.utils.sheet_to_json(ws,{defval:'',raw:true,range:hi});
-   students=rows.map(mapRow).filter(s=>s.id||s.name);
-   
-   const sel=$('studentSelect');
-   sel.innerHTML='';
-   
-   if(!students.length){
-     $('status').textContent='Parsed file, but no student records were found. Check column headers.';
-     return;
-   }
+    // Navigation Tabs
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
 
-   students.forEach((s,i)=>{
-     const o=document.createElement('option');
-     o.value=i;
-     o.textContent=(s.id||'No ID')+' — '+(s.name||'Unnamed');
-     sel.appendChild(o);
-   });
-   
-   sel._list=students;
-   sel.value=0;
-   setForm(students[0]);
-   $('status').textContent=`Successfully loaded ${students.length} student(s) from ${file.name}!`;
-  }catch(err){
-   console.error(err);
-   $('status').textContent='Error reading file: ' + err.message;
-  }
- };
- reader.readAsArrayBuffer(file);
-});
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetId = btn.dataset.target;
+        tabBtns.forEach(b => {
+          b.classList.remove('border-brand-blue', 'text-brand-blue', 'dark:text-blue-400', 'font-semibold');
+          b.classList.add('border-transparent', 'text-brand-muted', 'font-medium');
+        });
+        btn.classList.add('border-brand-blue', 'text-brand-blue', 'dark:text-blue-400', 'font-semibold');
+        btn.classList.remove('border-transparent', 'text-brand-muted', 'font-medium');
 
-$('download').onclick=async()=>{
- const s=current();
- if(!s.id&&!s.name){alert('Please enter student details first.');return;}
- if(!window.jspdf||!window.html2canvas){alert('PDF download library unavailable.');return;}
+        tabContents.forEach(tc => tc.classList.remove('active'));
+        document.getElementById(targetId).classList.add('active');
 
- $('status').textContent='Generating high-resolution PDF...';
- const card=$('card');
- const canvas=await html2canvas(card,{
-  scale:6,
-  useCORS:true,
-  allowTaint:false,
-  backgroundColor:'#fffdf6',
-  logging:false,
-  imageTimeout:0
- });
+        if (targetId === 'monthlyTab') renderMonthlySummary();
+        if (targetId === 'rosterTab') renderRoster();
+      });
+    });
 
- const doc=new jspdf.jsPDF({
-  orientation:'landscape',
-  unit:'mm',
-  format:[101.6,63.8],
-  compress:false
- });
- doc.addImage(canvas.toDataURL('image/png'),'PNG',0,0,101.6,63.8,undefined,'NONE');
- const filename=(s.name||s.id||'Student').replace(/[^a-z0-9_-]+/gi,'_');
- doc.save('StudentID_'+filename+'.pdf');
- $('status').textContent='High-resolution PDF generated successfully.';
-};
+    // Time calculations
+    function mins(t) {
+      if (!t) return null;
+      const p = t.split(':').map(Number);
+      return p[0] * 60 + p[1];
+    }
+    function duration(a, b) {
+      if (!a || !b) return null;
+      let diff = mins(b) - mins(a);
+      if (diff < 0) diff += 1440;
+      return diff;
+    }
+    function fmtMins(m) {
+      if (m == null) return '—';
+      return `${Math.floor(m / 60)}h ${m % 60}m`;
+    }
+    function lateMins(t) {
+      const a = mins(t);
+      const r = mins(document.getElementById('reportingTime').value || '09:00');
+      return a == null ? null : Math.max(0, a - r);
+    }
+    function esc(s) {
+      return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
 
-$('downloadZip').onclick=async()=>{
- if(!students.length){alert('Please upload an Excel file with students first.');return;}
- if(!window.JSZip||!window.jspdf||!window.html2canvas){alert('Required libraries are missing.');return;}
+    function dayKey() {
+      return datePicker.value;
+    }
 
- const zip=new JSZip();
- const card=$('card');$('status').textContent=`Preparing ZIP archive for ${students.length} students...`;
+    // Get active form record for editing, defaulting outTime to 18:00
+    function getFormRecord(staffId) {
+      const k = dayKey();
+      if (!state.forms[k]) {
+        state.forms[k] = {};
+      }
+      if (!state.forms[k][staffId]) {
+        const saved = state.days[k] && state.days[k][staffId];
+        if (saved) {
+          state.forms[k][staffId] = { ...saved };
+        } else {
+          state.forms[k][staffId] = { inTime: '', outTime: '18:00', status: 'Present', remarks: '' };
+        }
+      }
+      return state.forms[k][staffId];
+    }
 
- for(let i=0; i<students.length; i++){
-  const s=students[i];
-  setForm(s);
-  $('status').textContent=`Processing student ${i+1} of ${students.length}: ${s.name||s.id}`;
-  
-  await new Promise(r=>setTimeout(r, 40));
+    // Render Daily Attendance View
+    function renderDaily() {
+      const q = document.getElementById('searchBox').value.trim().toLowerCase();
+      const body = document.getElementById('attendanceBody');
+      body.innerHTML = '';
 
-  const canvas=await html2canvas(card,{
-   scale:4,
-   useCORS:true,
-   allowTaint:false,
-   backgroundColor:'#fffdf6',
-   logging:false,
-   imageTimeout:0
-  });
+      let present = 0, late = 0, totalMins = 0, shown = 0;
 
-  const doc=new jspdf.jsPDF({
-   orientation:'landscape',
-   unit:'mm',
-   format:[101.6,63.8],
-   compress:true
-  });
-  doc.addImage(canvas.toDataURL('image/png'),'PNG',0,0,101.6,63.8,undefined,'FAST');
-  
-  const pdfBlob=doc.output('blob');
-  const filename=(s.name||s.id||('Student_'+i)).replace(/[^a-z0-9_-]+/gi,'_');
-  zip.file(`StudentID_${filename}.pdf`, pdfBlob);
- }
+      state.staff.forEach((staff, i) => {
+        const rec = getFormRecord(staff.id);
+        const searchable = (staff.name + ' ' + (staff.department || '') + ' ' + (staff.role || '')).toLowerCase();
+        if (q && !searchable.includes(q)) return;
+        shown++;
 
- $('status').textContent='Compressing ZIP archive...';
- const content=await zip.generateAsync({type:'blob'});
- const link=document.createElement('a');
- link.href=URL.createObjectURL(content);
- link.download='All_Student_ID_Cards.zip';
- link.click();
- $('status').textContent=`Successfully generated ZIP containing ${students.length} ID cards.`;
-};
+        const dur = duration(rec.inTime, rec.outTime);
+        const lm = lateMins(rec.inTime);
+        
+        if (rec.status === 'Present' && (rec.inTime || rec.outTime)) present++;
+        if (rec.status === 'Present' && lm > 0) late++;
+        if (dur != null && rec.status === 'Present') totalMins += dur;
 
-update();
-</script>
+        const isMissingPunch = rec.status === 'Present' && rec.inTime && !rec.outTime;
+        const rowBgClass = (i % 2 === 0) ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/70 dark:bg-slate-900/60';
+
+        const tr = document.createElement('tr');
+        tr.className = `${rowBgClass} hover:bg-brand-blueLight/50 dark:hover:bg-slate-800/60 transition`;
+        tr.innerHTML = `
+          <td class="py-2.5 px-3.5 text-center font-medium text-brand-muted dark:text-slate-400">${i + 1}</td>
+          <td class="py-2.5 px-3.5">
+            <div class="font-semibold text-brand-navy dark:text-blue-300 text-xs">${esc(staff.name)}</div>
+            <div class="text-[11px] text-brand-muted dark:text-slate-400 font-normal">${esc(staff.role || staff.department || '')}</div>
+          </td>
+          <td class="py-2.5 px-3.5">
+            <div class="flex items-center gap-1.5">
+              <input type="time" data-id="${staff.id}" data-field="inTime" value="${esc(rec.inTime)}" aria-label="In time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-blue">
+              <button type="button" class="quick-in-btn bg-brand-blue hover:bg-blue-700 text-white text-[11px] px-2 py-1 rounded font-medium transition" data-id="${staff.id}" title="Set current local time">In</button>
+            </div>
+          </td>
+          <td class="py-2.5 px-3.5">
+            <div class="flex items-center gap-1.5">
+              <input type="time" data-id="${staff.id}" data-field="outTime" value="${esc(rec.outTime)}" aria-label="Out time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-blue">
+              <button type="button" class="quick-out-btn bg-brand-navySecondary hover:bg-brand-navy text-white text-[11px] px-2 py-1 rounded font-medium transition" data-id="${staff.id}" title="Set current local time">Out</button>
+            </div>
+            ${isMissingPunch ? '<div class="text-[10px] text-brand-amber font-semibold mt-0.5">⚠️ Missing Out-Punch</div>' : ''}
+          </td>
+          <td class="py-2.5 px-3.5 font-bold text-brand-green">${dur != null ? fmtMins(dur) : '<span class="text-slate-400 font-normal">—</span>'}</td>
+          <td class="py-2.5 px-3.5 font-semibold">
+            ${rec.status !== 'Present' ? '<span class="text-slate-400 font-normal">—</span>' : (lm == null ? '<span class="text-slate-400 font-normal">—</span>' : (lm > 0 ? `<span class="text-brand-red">${lm} min</span>` : '<span class="text-brand-green">On time</span>'))}
+          </td>
+          <td class="py-2.5 px-3.5">
+            <select data-id="${staff.id}" data-field="status" aria-label="Status for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium ${rec.status === 'Present' ? 'text-brand-green' : (rec.status === 'Leave' ? 'text-brand-amber' : '')}">
+              ${['Present','Absent','Leave','Permission','Half Day'].map(s => `<option ${rec.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+            </select>
+          </td>
+          <td class="py-2.5 px-3.5">
+            <input type="text" data-id="${staff.id}" data-field="remarks" value="${esc(rec.remarks)}" placeholder="Optional note" aria-label="Remarks for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-full focus:outline-none focus:ring-1 focus:ring-brand-blue">
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+
+      document.getElementById('emptyMessage').classList.toggle('hidden', shown !== 0);
+      document.getElementById('totalCount').textContent = state.staff.length;
+      document.getElementById('presentCount').textContent = present;
+      document.getElementById('lateCount').textContent = late;
+      document.getElementById('hoursCount').textContent = `${Math.floor(totalMins / 60)}h ${totalMins % 60}m`;
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // Input changes
+    document.getElementById('attendanceBody').addEventListener('change', e => {
+      const el = e.target;
+      const id = el.dataset.id;
+      const field = el.dataset.field;
+      if (!id || !field) return;
+
+      const rec = getFormRecord(id);
+      rec[field] = el.value;
+      renderDaily();
+    });
+
+    document.getElementById('attendanceBody').addEventListener('input', e => {
+      const el = e.target;
+      if (el.dataset.field === 'remarks') {
+        const id = el.dataset.id;
+        const rec = getFormRecord(id);
+        rec.remarks = el.value;
+      }
+    });
+
+    // Quick Check-In / Check-Out (Validated against Date)
+    document.getElementById('attendanceBody').addEventListener('click', e => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      if (!id) return;
+
+      if (!validateAttendanceDate()) return;
+
+      const now = new Date();
+      const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+      const rec = getFormRecord(id);
+
+      if (btn.classList.contains('quick-in-btn')) {
+        rec.inTime = timeStr;
+      } else if (btn.classList.contains('quick-out-btn')) {
+        rec.outTime = timeStr;
+      }
+      renderDaily();
+    });
+
+    // Save Attendance Handler (Validated against Date)
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      if (!validateAttendanceDate()) return;
+
+      document.querySelectorAll('#attendanceBody [data-id][data-field]').forEach(el => {
+        const { id, field } = el.dataset;
+        const rec = getFormRecord(id);
+        rec[field] = el.value;
+      });
+
+      const k = dayKey();
+      state.days[k] = JSON.parse(JSON.stringify(state.forms[k]));
+
+      const success = saveState();
+      if (success) {
+        document.getElementById('saveStatus').innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5 text-brand-green inline"></i> Saved successfully at ' + new Date().toLocaleTimeString();
+        
+        let formattedDateStr = k;
+        try {
+          const [y, m, d] = k.split('-').map(Number);
+          const dt = new Date(y, m - 1, d);
+          formattedDateStr = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        } catch (err) {}
+
+        document.getElementById('savedSuccessModalText').textContent = `Attendance records for ${formattedDateStr} have been successfully committed to memory.`;
+        document.getElementById('savedSuccessModal').classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+
+    // Modal OK Button - Clear Visible Form Draft to Blank / 18:00
+    document.getElementById('savedModalOkBtn').addEventListener('click', () => {
+      document.getElementById('savedSuccessModal').classList.add('hidden');
+      
+      const k = dayKey();
+      state.forms[k] = {};
+      state.staff.forEach(staff => {
+        state.forms[k][staff.id] = { inTime: '', outTime: '18:00', status: 'Present', remarks: '' };
+      });
+      renderDaily();
+    });
+
+    document.getElementById('savedSuccessModal').addEventListener('click', e => {
+      if (e.target === document.getElementById('savedSuccessModal')) {
+        document.getElementById('savedSuccessModal').classList.add('hidden');
+        const k = dayKey();
+        state.forms[k] = {};
+        state.staff.forEach(staff => {
+          state.forms[k][staff.id] = { inTime: '', outTime: '18:00', status: 'Present', remarks: '' };
+        });
+        renderDaily();
+      }
+    });
+
+    datePicker.addEventListener('change', renderDaily);
+    document.getElementById('reportingTime').addEventListener('change', renderDaily);
+    document.getElementById('searchBox').addEventListener('input', renderDaily);
+
+    // Add Staff Member
+    document.getElementById('addStaffBtn').addEventListener('click', () => {
+      const name = prompt('Enter the new team member’s name:');
+      if (!name || !name.trim()) return;
+      const dept = prompt('Enter Department (e.g., Engineering, Operations):', 'General') || 'General';
+      const role = prompt('Enter Designation / Role:', 'Team Member') || 'Team Member';
+      
+      state.staff.push({
+        id: 's' + Date.now(),
+        name: name.trim(),
+        department: dept.trim(),
+        role: role.trim()
+      });
+      saveState();
+      renderDaily();
+    });
+
+    // Export CSV (Daily - Validated against Date)
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      if (!validateAttendanceDate()) return;
+
+      const k = dayKey();
+      const day = state.days[k] || {};
+      const rows = [['Date', 'S.No.', 'Staff Name', 'Department', 'Role', 'In Time', 'Out Time', 'Working Hours', 'Late By (mins)', 'Status', 'Remarks']];
+      
+      state.staff.forEach((s, i) => {
+        const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
+        const d = duration(r.inTime, r.outTime);
+        rows.push([k, i + 1, s.name, s.department || '', s.role || '', r.inTime, r.outTime, d == null ? '' : fmtMins(d), lateMins(r.inTime) ?? '', r.status, r.remarks]);
+      });
+
+      const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ait-attendance-' + k + '.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Save as Image (PNG - Validated against Date)
+    document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
+      if (!validateAttendanceDate()) return;
+
+      const k = dayKey();
+      const day = state.days[k] || {};
+
+      document.getElementById('imgExportDateLabel').textContent = 'Date: ' + k;
+      const tbody = document.getElementById('imgExportTableBody');
+      tbody.innerHTML = '';
+
+      state.staff.forEach((s, i) => {
+        const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
+        let punchVal = '—';
+        if (r.status === 'Leave') {
+          punchVal = 'Leave';
+        } else if (r.status === 'Absent') {
+          punchVal = 'Absent';
+        } else if (r.inTime) {
+          punchVal = r.inTime + (r.outTime ? ' - ' + r.outTime : '');
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="border: 1px solid #D7E0E9; padding: 8px; text-align: center; font-size: 11px;">${i + 1}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 8px; text-align: left; font-size: 11px; font-weight: 600; color: #12345A;">${esc(s.name)} <span style="font-weight: 400; font-size: 10px; color: #617184;">(${esc(s.role || s.department || '')})</span></td>
+          <td style="border: 1px solid #D7E0E9; padding: 8px; text-align: center; font-size: 11px;">${esc(punchVal)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const exportContainer = document.getElementById('imageExportContainer');
+      try {
+        const canvas = await html2canvas(exportContainer, { scale: 2, useCORS: true });
+        const image = canvas.toDataURL('image/png');
+        const a = document.createElement('a');
+        a.href = image;
+        a.download = `AIT_Team_Attendance_${k}.png`;
+        a.click();
+      } catch (err) {
+        console.error('Image generation failed:', err);
+        alert('Failed to generate attendance image. Please try again.');
+      }
+    });
+
+    // Monthly Summary Logic
+    function renderMonthlySummary() {
+      const monthStr = monthlyMonthPicker.value; // YYYY-MM
+      const workingDays = parseInt(document.getElementById('workingDaysInput').value) || 22;
+      const body = document.getElementById('monthlyBody');
+      body.innerHTML = '';
+
+      state.staff.forEach((staff, i) => {
+        let presentDays = 0;
+        let leaveDays = 0;
+        let lateCount = 0;
+        let totalOvertimeMins = 0;
+        let totalStaffMins = 0;
+
+        Object.keys(state.days).forEach(dateKey => {
+          if (dateKey.startsWith(monthStr)) {
+            const rec = state.days[dateKey][staff.id];
+            if (rec) {
+              if (rec.status === 'Present' && (rec.inTime || rec.outTime)) {
+                presentDays++;
+                const lm = lateMins(rec.inTime);
+                if (lm > 0) lateCount++;
+                const dur = duration(rec.inTime, rec.outTime);
+                if (dur != null) {
+                  totalStaffMins += dur;
+                  if (dur > 480) totalOvertimeMins += (dur - 480);
+                }
+              } else if (rec.status === 'Leave') {
+                leaveDays++;
+              }
+            }
+          }
+        });
+
+        const attendancePct = workingDays > 0 ? Math.min(100, Math.round((presentDays / workingDays) * 100)) : 0;
+        const rowBgClass = (i % 2 === 0) ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/70 dark:bg-slate-900/60';
+
+        const tr = document.createElement('tr');
+        tr.className = `${rowBgClass} hover:bg-brand-blueLight/50 dark:hover:bg-slate-800/60 transition`;
+        tr.innerHTML = `
+          <td class="py-2.5 px-3.5 text-center font-medium text-brand-muted dark:text-slate-400">${i + 1}</td>
+          <td class="py-2.5 px-3.5 font-semibold text-brand-navy dark:text-blue-300 text-xs">${esc(staff.name)}</td>
+          <td class="py-2.5 px-3.5 font-bold text-brand-green">${presentDays} days</td>
+          <td class="py-2.5 px-3.5 font-bold text-brand-blue dark:text-blue-400">${attendancePct}%</td>
+          <td class="py-2.5 px-3.5 text-brand-amber font-medium">${leaveDays} days</td>
+          <td class="py-2.5 px-3.5 text-brand-red font-semibold">${lateCount}</td>
+          <td class="py-2.5 px-3.5 text-brand-navySecondary font-semibold">${fmtMins(totalOvertimeMins)}</td>
+          <td class="py-2.5 px-3.5 font-bold text-brand-navy dark:text-blue-300">${fmtMins(totalStaffMins)}</td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    monthlyMonthPicker.addEventListener('change', renderMonthlySummary);
+    document.getElementById('workingDaysInput').addEventListener('input', renderMonthlySummary);
+    document.getElementById('approvedHolidaysInput').addEventListener('input', renderMonthlySummary);
+
+    // Monthly CSV Export
+    document.getElementById('exportMonthlyBtn').addEventListener('click', () => {
+      const monthStr = monthlyMonthPicker.value;
+      const workingDays = parseInt(document.getElementById('workingDaysInput').value) || 22;
+      const rows = [['Month', 'S.No.', 'Staff Name', 'Present Days', 'Attendance %', 'Leave Days', 'Late Count', 'Total Overtime', 'Total Working Hours']];
+
+      state.staff.forEach((staff, i) => {
+        let presentDays = 0, leaveDays = 0, lateCount = 0, totalOvertimeMins = 0, totalStaffMins = 0;
+        Object.keys(state.days).forEach(dateKey => {
+          if (dateKey.startsWith(monthStr)) {
+            const rec = state.days[dateKey][staff.id];
+            if (rec) {
+              if (rec.status === 'Present' && (rec.inTime || rec.outTime)) {
+                presentDays++;
+                if (lateMins(rec.inTime) > 0) lateCount++;
+                const dur = duration(rec.inTime, rec.outTime);
+                if (dur != null) {
+                  totalStaffMins += dur;
+                  if (dur > 480) totalOvertimeMins += (dur - 480);
+                }
+              } else if (rec.status === 'Leave') leaveDays++;
+            }
+          }
+        });
+        const pct = workingDays > 0 ? Math.min(100, Math.round((presentDays / workingDays) * 100)) : 0;
+        rows.push([monthStr, i + 1, staff.name, presentDays, pct + '%', leaveDays, lateCount, fmtMins(totalOvertimeMins), fmtMins(totalStaffMins)]);
+      });
+
+      const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ait-monthly-summary-${monthStr}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // Staff Roster Management
+    function renderRoster() {
+      const body = document.getElementById('rosterBody');
+      body.innerHTML = '';
+
+      state.staff.forEach((staff, i) => {
+        const rowBgClass = (i % 2 === 0) ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/70 dark:bg-slate-900/60';
+        const tr = document.createElement('tr');
+        tr.className = `${rowBgClass} hover:bg-brand-blueLight/50 dark:hover:bg-slate-800/60 transition`;
+        tr.innerHTML = `
+          <td class="py-2.5 px-3.5 font-mono text-[11px] text-brand-muted">${staff.id}</td>
+          <td class="py-2.5 px-3.5 font-semibold text-brand-navy dark:text-blue-300"><input type="text" value="${esc(staff.name)}" data-roster-id="${staff.id}" data-field="name" class="roster-input border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-blue"></td>
+          <td class="py-2.5 px-3.5"><input type="text" value="${esc(staff.department || '')}" data-roster-id="${staff.id}" data-field="department" class="roster-input border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-blue"></td>
+          <td class="py-2.5 px-3.5"><input type="text" value="${esc(staff.role || '')}" data-roster-id="${staff.id}" data-field="role" class="roster-input border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium focus:outline-none focus:ring-1 focus:ring-brand-blue"></td>
+          <td class="py-2.5 px-3.5 text-right">
+            <button class="delete-staff-btn bg-brand-redLight hover:bg-red-100 dark:bg-slate-800 text-brand-red border border-brand-red/20 px-2.5 py-1 rounded text-xs font-medium transition" data-id="${staff.id}">Remove</button>
+          </td>
+        `;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById('rosterBody').addEventListener('input', e => {
+      const el = e.target;
+      if (el.classList.contains('roster-input')) {
+        const id = el.dataset.rosterId;
+        const field = el.dataset.field;
+        const staff = state.staff.find(s => s.id === id);
+        if (staff) {
+          staff[field] = el.value.trim();
+          saveState();
+        }
+      }
+    });
+
+    document.getElementById('rosterBody').addEventListener('click', e => {
+      const btn = e.target.closest('.delete-staff-btn');
+      if (!btn) return;
+      const id = btn.dataset.id;
+      if (confirm('Are you sure you want to remove this staff member from the AIT roster?')) {
+        state.staff = state.staff.filter(s => s.id !== id);
+        saveState();
+        renderRoster();
+      }
+    });
+
+    document.getElementById('rosterAddBtn').addEventListener('click', () => {
+      const name = prompt('Enter staff member name:');
+      if (!name || !name.trim()) return;
+      const dept = prompt('Enter Department:', 'Engineering') || 'Engineering';
+      const role = prompt('Enter Designation / Role:', 'Software Engineer') || 'Software Engineer';
+
+      state.staff.push({
+        id: 's' + Date.now(),
+        name: name.trim(),
+        department: dept.trim(),
+        role: role.trim()
+      });
+      saveState();
+      renderRoster();
+    });
+
+    // Backup & Restore
+    document.getElementById('backupJsonBtn').addEventListener('click', () => {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = `ait-attendance-backup-${formatLocalDate(new Date())}.json`;
+      a.click();
+    });
+
+    document.getElementById('restoreJsonInput').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          if (parsed && Array.isArray(parsed.staff) && parsed.days) {
+            if (confirm('Are you sure you want to overwrite existing AIT data with this backup?')) {
+              state = parsed;
+              saveState();
+              alert('Backup restored successfully!');
+              renderDaily();
+            }
+          } else {
+            alert('Invalid backup file format.');
+          }
+        } catch (err) {
+          console.error(err);
+          alert('Failed to parse JSON backup file.');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById('resetDataBtn').addEventListener('click', () => {
+      if (confirm('WARNING: This will reset all staff rosters and attendance records to default sample data. Proceed?')) {
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+      }
+    });
+
+    // Initial render
+    renderDaily();
+  </script>
 </body>
 </html>
