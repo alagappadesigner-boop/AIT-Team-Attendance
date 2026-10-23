@@ -67,8 +67,8 @@
       <!-- Brand Logo & Institutional Titles -->
       <div class="flex items-center gap-3.5 w-full md:w-auto">
         <div class="w-11 h-11 bg-white rounded-lg p-1 shadow-sm flex items-center justify-center shrink-0 border border-slate-200 overflow-hidden">
-          <img id="aitLogoImg" src="ait-logo.png" alt="AIT Logo" class="w-full h-full object-contain" onerror="this.style.display='none'; document.getElementById('aitLogoFallback').style.display='flex';">
-          <div id="aitLogoFallback" class="w-full h-full bg-brand-navy text-white font-black text-base rounded flex items-center justify-center tracking-tighter">AIT</div>
+          <img id="aitLogoImg" src="AIT logo new_1111.png" alt="AIT Logo" class="w-full h-full object-contain" onerror="this.onerror=null; this.src='ait-logo.png'; this.onerror=function(){ this.style.display='none'; document.getElementById('aitLogoFallback').style.display='flex'; };">
+          <div id="aitLogoFallback" class="w-full h-full bg-brand-navy text-white font-black text-base rounded hidden items-center justify-center tracking-tighter">AIT</div>
         </div>
         <div>
           <div class="flex items-center gap-2">
@@ -397,28 +397,35 @@
     </div>
   </div>
 
-  <!-- HIDDEN CONTAINER FOR IMAGE GENERATION -->
+  <!-- HIDDEN CONTAINER FOR EXACT ATTENDANCE PNG IMAGE GENERATION -->
   <div id="imageExportWrapper" style="position: absolute; left: -9999px; top: -9999px;">
-    <div id="imageExportContainer" style="background: #ffffff; color: #172B3A; padding: 28px; width: 880px; font-family: 'Inter', sans-serif;">
-      <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #12345A; padding-bottom: 12px;">
-        <h2 style="font-size: 20px; font-weight: 800; margin: 0; color: #12345A; letter-spacing: -0.02em;">AIT TEAM ATTENDANCE SHEET</h2>
-        <p style="font-size: 11px; font-weight: 600; color: #617184; text-transform: uppercase; margin-top: 4px;">Alagappa Institute of Technology</p>
-        <div id="imgExportDateLabel" style="font-size: 12px; font-weight: 600; color: #1769AA; margin-top: 6px;">Date: 2026-10-23</div>
+    <div id="imageExportContainer" style="background: #ffffff; color: #000000; padding: 30px; width: 850px; font-family: 'Inter', sans-serif;">
+      
+      <!-- Report Header with AIT Logo -->
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 12px;">
+          <img id="exportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 65px; width: auto; object-contain: contain;" onerror="this.onerror=null; this.src='ait-logo.png';">
+        </div>
+        <h2 style="font-size: 22px; font-weight: 800; margin: 0; color: #000000; letter-spacing: -0.01em; uppercase">AIT TEAM ATTENDANCE</h2>
+        <div id="imgExportDateLabel" style="font-size: 14px; font-weight: 600; color: #000000; margin-top: 6px;">Date: 2026-10-23</div>
       </div>
-      <table style="width: 100%; border-collapse: collapse; border: 1px solid #D7E0E9;">
+
+      <!-- Clean Black Bordered Table matching reference specs -->
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #000000;">
         <thead>
-          <tr style="background-color: #12345A; color: #ffffff;">
-            <th style="border: 1px solid #12345A; padding: 8px 10px; text-align: center; font-size: 11px; width: 10%; text-transform: uppercase;">S.No</th>
-            <th style="border: 1px solid #12345A; padding: 8px 10px; text-align: left; font-size: 11px; width: 60%; text-transform: uppercase;">Team Member & Role</th>
-            <th style="border: 1px solid #12345A; padding: 8px 10px; text-align: center; font-size: 11px; width: 30%; text-transform: uppercase;">Punch Records</th>
+          <tr style="background-color: #ffffff; color: #000000;">
+            <th style="border: 1px solid #000000; padding: 10px; text-align: center; font-size: 12px; font-weight: 700; width: 10%; text-transform: uppercase;">S.No</th>
+            <th style="border: 1px solid #000000; padding: 10px; text-align: left; font-size: 12px; font-weight: 700; width: 60%; text-transform: uppercase;">Team Members</th>
+            <th style="border: 1px solid #000000; padding: 10px; text-align: center; font-size: 12px; font-weight: 700; width: 30%; text-transform: uppercase;">Punch in Time</th>
           </tr>
         </thead>
         <tbody id="imgExportTableBody">
-          <!-- Populated dynamically -->
+          <!-- Dynamically populated -->
         </tbody>
       </table>
-      <div style="margin-top: 16px; font-size: 10px; color: #617184; text-align: right; font-weight: 500;">
-        Alagappa Institute of Technology • Enterprise Attendance System
+
+      <div style="margin-top: 18px; font-size: 11px; color: #444444; text-align: right; font-weight: 500;">
+        Alagappa Institute of Technology • Official Attendance Record
       </div>
     </div>
   </div>
@@ -491,7 +498,7 @@
     const monthlyMonthPicker = document.getElementById('monthlyMonthPicker');
     monthlyMonthPicker.value = new Date().toISOString().slice(0, 7);
 
-    // Reusable Date Validation Function
+    // Date Validation
     function isValidDateString(dateStr) {
       if (!dateStr) return false;
       const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -511,7 +518,7 @@
       return true;
     }
 
-    // Warning Modal Close Handlers
+    // Modal Handlers
     document.getElementById('warningModalOkBtn').addEventListener('click', () => {
       document.getElementById('warningModal').classList.add('hidden');
     });
@@ -591,21 +598,38 @@
       const p = t.split(':').map(Number);
       return p[0] * 60 + p[1];
     }
-    function duration(a, b) {
+
+    function duration(a, b, status) {
+      if (status === 'Leave' || status === 'Absent') return null;
       if (!a || !b) return null;
       let diff = mins(b) - mins(a);
       if (diff < 0) diff += 1440;
       return diff;
     }
+
     function fmtMins(m) {
       if (m == null) return '—';
       return `${Math.floor(m / 60)}h ${m % 60}m`;
     }
+
     function lateMins(t) {
       const a = mins(t);
       const r = mins(document.getElementById('reportingTime').value || '09:00');
       return a == null ? null : Math.max(0, a - r);
     }
+
+    function formatTime12h(timeStr) {
+      if (!timeStr) return '';
+      const parts = timeStr.split(':');
+      if (parts.length < 2) return timeStr;
+      let h = parseInt(parts[0], 10);
+      const m = parts[1];
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12;
+      h = h ? h : 12;
+      return `${String(h).padStart(2, '0')}:${m}${ampm}`;
+    }
+
     function esc(s) {
       return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
@@ -625,6 +649,7 @@
         if (saved) {
           state.forms[k][staffId] = { ...saved };
         } else {
+          // Default Out Time set to 18:00 (6:00 PM) for new entries
           state.forms[k][staffId] = { inTime: '', outTime: '18:00', status: 'Present', remarks: '' };
         }
       }
@@ -645,7 +670,7 @@
         if (q && !searchable.includes(q)) return;
         shown++;
 
-        const dur = duration(rec.inTime, rec.outTime);
+        const dur = duration(rec.inTime, rec.outTime, rec.status);
         const lm = lateMins(rec.inTime);
         
         if (rec.status === 'Present' && (rec.inTime || rec.outTime)) present++;
@@ -721,7 +746,7 @@
       }
     });
 
-    // Quick Check-In / Check-Out (Validated against Date)
+    // Quick Punch
     document.getElementById('attendanceBody').addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn) return;
@@ -742,7 +767,7 @@
       renderDaily();
     });
 
-    // Save Attendance Handler (Validated against Date)
+    // Save Attendance Handler
     document.getElementById('saveBtn').addEventListener('click', () => {
       if (!validateAttendanceDate()) return;
 
@@ -817,7 +842,7 @@
       renderDaily();
     });
 
-    // Export CSV (Daily - Validated against Date)
+    // Export CSV
     document.getElementById('exportBtn').addEventListener('click', () => {
       if (!validateAttendanceDate()) return;
 
@@ -827,7 +852,7 @@
       
       state.staff.forEach((s, i) => {
         const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
-        const d = duration(r.inTime, r.outTime);
+        const d = duration(r.inTime, r.outTime, r.status);
         rows.push([k, i + 1, s.name, s.department || '', s.role || '', r.inTime, r.outTime, d == null ? '' : fmtMins(d), lateMins(r.inTime) ?? '', r.status, r.remarks]);
       });
 
@@ -841,7 +866,7 @@
       URL.revokeObjectURL(url);
     });
 
-    // Save as Image (PNG - Validated against Date)
+    // Save as Image (PNG with Embedded AIT Logo)
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
 
@@ -853,28 +878,46 @@
       tbody.innerHTML = '';
 
       state.staff.forEach((s, i) => {
-        const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
+        const r = day[s.id] || getFormRecord(s.id);
         let punchVal = '—';
         if (r.status === 'Leave') {
           punchVal = 'Leave';
         } else if (r.status === 'Absent') {
           punchVal = 'Absent';
         } else if (r.inTime) {
-          punchVal = r.inTime + (r.outTime ? ' - ' + r.outTime : '');
+          punchVal = formatTime12h(r.inTime);
         }
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="border: 1px solid #D7E0E9; padding: 8px; text-align: center; font-size: 11px;">${i + 1}</td>
-          <td style="border: 1px solid #D7E0E9; padding: 8px; text-align: left; font-size: 11px; font-weight: 600; color: #12345A;">${esc(s.name)} <span style="font-weight: 400; font-size: 10px; color: #617184;">(${esc(s.role || s.department || '')})</span></td>
-          <td style="border: 1px solid #D7E0E9; padding: 8px; text-align: center; font-size: 11px;">${esc(punchVal)}</td>
+          <td style="border: 1px solid #000000; padding: 8px; text-align: center; font-size: 11px; font-weight: 500;">${i + 1}</td>
+          <td style="border: 1px solid #000000; padding: 8px; text-align: left; font-size: 11px; font-weight: 700; color: #000000;">
+            ${esc(s.name)} 
+            <span style="font-weight: 400; font-size: 10px; color: #444444;">(${esc(s.role || s.department || '')})</span>
+          </td>
+          <td style="border: 1px solid #000000; padding: 8px; text-align: center; font-size: 11px; font-weight: 600; color: #000000;">${esc(punchVal)}</td>
         `;
         tbody.appendChild(tr);
       });
 
-      const exportContainer = document.getElementById('imageExportContainer');
+      const logoImg = document.getElementById('exportAitLogo');
+      
+      // Ensure logo image is fully loaded before rendering with html2canvas
+      const ensureImageLoaded = (img) => {
+        return new Promise((resolve, reject) => {
+          if (img.complete && img.naturalHeight !== 0) {
+            resolve();
+          } else {
+            img.onload = () => resolve();
+            img.onerror = () => resolve(); // Proceed even if logo fails
+          }
+        });
+      };
+
       try {
-        const canvas = await html2canvas(exportContainer, { scale: 2, useCORS: true });
+        await ensureImageLoaded(logoImg);
+        const exportContainer = document.getElementById('imageExportContainer');
+        const canvas = await html2canvas(exportContainer, { scale: 2, useCORS: true, allowTaint: true });
         const image = canvas.toDataURL('image/png');
         const a = document.createElement('a');
         a.href = image;
@@ -882,13 +925,13 @@
         a.click();
       } catch (err) {
         console.error('Image generation failed:', err);
-        alert('Failed to generate attendance image. Please try again.');
+        alert('Failed to generate attendance PNG image. Please try again.');
       }
     });
 
     // Monthly Summary Logic
     function renderMonthlySummary() {
-      const monthStr = monthlyMonthPicker.value; // YYYY-MM
+      const monthStr = monthlyMonthPicker.value;
       const workingDays = parseInt(document.getElementById('workingDaysInput').value) || 22;
       const body = document.getElementById('monthlyBody');
       body.innerHTML = '';
@@ -908,7 +951,7 @@
                 presentDays++;
                 const lm = lateMins(rec.inTime);
                 if (lm > 0) lateCount++;
-                const dur = duration(rec.inTime, rec.outTime);
+                const dur = duration(rec.inTime, rec.outTime, rec.status);
                 if (dur != null) {
                   totalStaffMins += dur;
                   if (dur > 480) totalOvertimeMins += (dur - 480);
@@ -958,7 +1001,7 @@
               if (rec.status === 'Present' && (rec.inTime || rec.outTime)) {
                 presentDays++;
                 if (lateMins(rec.inTime) > 0) lateCount++;
-                const dur = duration(rec.inTime, rec.outTime);
+                const dur = duration(rec.inTime, rec.outTime, rec.status);
                 if (dur != null) {
                   totalStaffMins += dur;
                   if (dur > 480) totalOvertimeMins += (dur - 480);
