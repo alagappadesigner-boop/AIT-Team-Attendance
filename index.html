@@ -340,12 +340,11 @@
           </button>
         </div>
         <div class="overflow-x-auto rounded-xl border border-brand-border/60 dark:border-slate-800">
-          <table class="w-full text-left border-collapse min-w-[800px]">
+          <table class="w-full text-left border-collapse min-w-[700px]">
             <thead>
               <tr class="bg-brand-navy text-white text-[11px] uppercase tracking-wider font-bold border-b-2 border-brand-gold/40">
                 <th class="py-3 px-4 w-16">ID</th>
                 <th class="py-3 px-4">Staff Name</th>
-                <th class="py-3 px-4">Department</th>
                 <th class="py-3 px-4">Designation / Role</th>
                 <th class="py-3 px-4 text-right">Actions</th>
               </tr>
@@ -425,6 +424,27 @@
       <button id="validationModalOkBtn" class="w-full bg-[#174A78] hover:bg-[#123456] text-white py-2.5 rounded-xl font-semibold text-xs transition duration-200 shadow-md active:scale-95">
         OK
       </button>
+    </div>
+  </div>
+
+  <!-- RENAME STAFF MODAL DIALOG -->
+  <div id="renameStaffModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs modal-backdrop-animate hidden">
+    <div class="bg-white dark:bg-slate-900 border border-brand-gold/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl space-y-4 modal-card-animate">
+      <div class="w-12 h-12 bg-amber-50 dark:bg-amber-950/60 text-brand-gold rounded-full flex items-center justify-center mx-auto shadow-inner">
+        <i data-lucide="user-pen" class="w-6 h-6"></i>
+      </div>
+      <div class="space-y-1.5 text-center">
+        <h3 class="font-extrabold text-sm text-brand-navy dark:text-white uppercase tracking-wider">Rename Staff Member</h3>
+        <p class="text-xs text-brand-muted dark:text-slate-400">Update the staff member's display name.</p>
+      </div>
+      <div>
+        <input type="text" id="renameStaffInput" placeholder="Enter new staff name" class="w-full border border-brand-border dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-xs bg-white dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-gold shadow-2xs font-semibold">
+        <p id="renameStaffError" class="text-[11px] text-[#B93838] mt-1.5 hidden font-semibold text-center">Staff name cannot be empty.</p>
+      </div>
+      <div class="flex gap-2.5 pt-1">
+        <button id="renameStaffCancelBtn" class="flex-1 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-brand-text dark:text-slate-200 py-2.5 rounded-xl font-semibold text-xs transition duration-200">Cancel</button>
+        <button id="renameStaffSaveBtn" class="flex-1 bg-[#174A78] hover:bg-[#123456] text-white py-2.5 rounded-xl font-semibold text-xs transition duration-200 shadow-md">Save</button>
+      </div>
     </div>
   </div>
 
@@ -509,7 +529,6 @@
     const defaultStaff = Array.from({length: 20}, (_, i) => ({
       id: 's' + (i + 1),
       name: 'Staff ' + (i + 1),
-      department: i < 10 ? 'Engineering' : 'Operations',
       role: i < 10 ? 'Software Engineer' : 'Support Specialist'
     }));
 
@@ -782,7 +801,7 @@
 
       state.staff.forEach((staff, i) => {
         const rec = getFormRecord(staff.id);
-        const searchable = (staff.name + ' ' + (staff.department || '') + ' ' + (staff.role || '')).toLowerCase();
+        const searchable = (staff.name + ' ' + (staff.role || '')).toLowerCase();
         if (q && !searchable.includes(q)) return;
         shown++;
 
@@ -802,7 +821,7 @@
           <td class="py-3 px-4 text-center font-medium text-brand-muted dark:text-slate-400">${i + 1}</td>
           <td class="py-3 px-4">
             <div class="font-bold text-[#123456] dark:text-brand-gold text-xs">${esc(staff.name)}</div>
-            <div class="text-[11px] text-brand-muted dark:text-slate-400 font-medium mt-0.5">${esc(staff.role || staff.department || '')}</div>
+            <div class="text-[11px] text-brand-muted dark:text-slate-400 font-medium mt-0.5">${esc(staff.role || '')}</div>
           </td>
           <td class="py-3 px-4">
             <div class="flex items-center gap-2">
@@ -949,13 +968,11 @@
         return;
       }
       const trimmedName = name.trim();
-      const dept = prompt('Enter Department:', 'Engineering') || 'Engineering';
       const role = prompt('Enter Designation / Role:', 'Software Engineer') || 'Software Engineer';
       
       state.staff.push({
         id: 's' + Date.now(),
         name: trimmedName,
-        department: dept.trim(),
         role: role.trim()
       });
       saveState(true);
@@ -971,11 +988,11 @@
         return;
       }
 
-      const rows = [['Date', 'S.No.', 'Staff Name', 'Department', 'Role', 'In Time', 'Out Time (12h)', 'Working Hours', 'Late By (mins)', 'Status', 'Remarks']];
+      const rows = [['Date', 'S.No.', 'Staff Name', 'Role', 'In Time', 'Out Time (12h)', 'Working Hours', 'Late By (mins)', 'Status', 'Remarks']];
       state.staff.forEach((s, i) => {
         const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
         const d = duration(r.inTime, r.outTime, r.status);
-        rows.push([k, i + 1, s.name, s.department || '', s.role || '', formatTime12h(r.inTime), formatTime12h(r.outTime), d == null ? '' : fmtMins(d), lateMins(r.inTime, r.status) ?? '', r.status, r.remarks]);
+        rows.push([k, i + 1, s.name, s.role || '', formatTime12h(r.inTime), formatTime12h(r.outTime), d == null ? '' : fmtMins(d), lateMins(r.inTime, r.status) ?? '', r.status, r.remarks]);
       });
 
       const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
@@ -1010,13 +1027,13 @@
         else if (r.inTime) punchVal = formatTime12h(r.inTime);
 
         const rowBg = (i % 2 === 0) ? '#ffffff' : '#FAFBFC';
-        const roleDeptText = s.role || s.department ? ` (${s.role || s.department})` : '';
+        const roleText = s.role ? ` (${s.role})` : '';
 
         const tr = document.createElement('tr');
         tr.style.backgroundColor = rowBg;
         tr.innerHTML = `
           <td style="border: 3px solid #000000; padding: 12px 10px; text-align: center; font-size: 14px; font-weight: 600; color: #000000;">${i + 1}</td>
-          <td style="border: 3px solid #000000; padding: 12px 16px; text-align: left; font-size: 14px; font-weight: 700; color: #000000;">${esc(s.name)}${esc(roleDeptText)}</td>
+          <td style="border: 3px solid #000000; padding: 12px 16px; text-align: left; font-size: 14px; font-weight: 700; color: #000000;">${esc(s.name)}${esc(roleText)}</td>
           <td style="border: 3px solid #000000; padding: 12px 10px; text-align: center; font-size: 14px; font-weight: 600; color: #000000;">${esc(punchVal)}</td>
         `;
         tbody.appendChild(tr);
@@ -1139,10 +1156,10 @@
         tr.innerHTML = `
           <td class="py-3 px-4 font-mono text-[11px] text-brand-muted">s${i + 1}</td>
           <td class="py-3 px-4 font-bold text-[#123456] dark:text-brand-gold"><input type="text" value="${esc(staff.name)}" data-roster-id="${staff.id}" data-field="name" class="roster-input border border-brand-border dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs bg-white dark:bg-slate-950 dark:text-white font-semibold focus:outline-none focus:ring-2 focus:ring-brand-gold transition shadow-2xs"></td>
-          <td class="py-3 px-4"><input type="text" value="${esc(staff.department || '')}" data-roster-id="${staff.id}" data-field="department" class="roster-input border border-brand-border dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-gold transition shadow-2xs"></td>
           <td class="py-3 px-4"><input type="text" value="${esc(staff.role || '')}" data-roster-id="${staff.id}" data-field="role" class="roster-input border border-brand-border dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium focus:outline-none focus:ring-2 focus:ring-brand-gold transition shadow-2xs"></td>
-          <td class="py-3 px-4 text-right">
-            <button class="delete-staff-btn bg-[#FDF2F2] hover:bg-red-100 dark:bg-slate-800 text-[#B93838] border border-[#B93838]/20 px-3 py-1.5 rounded-xl text-xs font-semibold transition duration-150 active:scale-95 shadow-2xs" data-id="${staff.id}">Remove</button>
+          <td class="py-3 px-4 text-right space-x-1.5">
+            <button class="rename-staff-btn bg-[#174A78] hover:bg-[#123456] text-white px-2.5 py-1.5 rounded-xl text-xs font-semibold transition duration-150 active:scale-95 shadow-2xs" data-id="${staff.id}" data-name="${esc(staff.name)}">Rename</button>
+            <button class="delete-staff-btn bg-[#FDF2F2] hover:bg-red-100 dark:bg-slate-800 text-[#B93838] border border-[#B93838]/20 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition duration-150 active:scale-95 shadow-2xs" data-id="${staff.id}">Remove</button>
           </td>
         `;
         body.appendChild(tr);
@@ -1162,7 +1179,24 @@
       }
     });
 
+    // RENAME STAFF MODAL LOGIC
+    let currentRenamingStaffId = null;
+    const renameStaffModal = document.getElementById('renameStaffModal');
+    const renameStaffInput = document.getElementById('renameStaffInput');
+    const renameStaffError = document.getElementById('renameStaffError');
+
     document.getElementById('rosterBody').addEventListener('click', e => {
+      const renameBtn = e.target.closest('.rename-staff-btn');
+      if (renameBtn) {
+        currentRenamingStaffId = renameBtn.dataset.id;
+        const staffObj = state.staff.find(s => s.id === currentRenamingStaffId);
+        renameStaffInput.value = staffObj ? staffObj.name : '';
+        renameStaffError.classList.add('hidden');
+        renameStaffModal.classList.remove('hidden');
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
       const btn = e.target.closest('.delete-staff-btn');
       if (!btn) return;
       const id = btn.dataset.id;
@@ -1177,16 +1211,42 @@
       }
     });
 
+    document.getElementById('renameStaffCancelBtn').addEventListener('click', () => {
+      renameStaffModal.classList.add('hidden');
+    });
+
+    renameStaffModal.addEventListener('click', e => {
+      if (e.target === renameStaffModal) {
+        renameStaffModal.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('renameStaffSaveBtn').addEventListener('click', () => {
+      const newName = renameStaffInput.value.trim();
+      if (!newName) {
+        renameStaffError.classList.remove('hidden');
+        return;
+      }
+
+      const staffObj = state.staff.find(s => s.id === currentRenamingStaffId);
+      if (staffObj) {
+        staffObj.name = newName;
+        saveState(true);
+        renderRoster();
+        renderDaily();
+        renameStaffModal.classList.add('hidden');
+        showValidationPopup(`Successfully renamed staff member to "${newName}".`);
+      }
+    });
+
     document.getElementById('rosterAddBtn').addEventListener('click', () => {
       const name = prompt('Enter staff member name:');
       if (!name || !name.trim()) return;
-      const dept = prompt('Enter Department:', 'Engineering') || 'Engineering';
       const role = prompt('Enter Designation / Role:', 'Software Engineer') || 'Software Engineer';
 
       state.staff.push({
         id: 's' + Date.now(),
         name: name.trim(),
-        department: dept.trim(),
         role: role.trim()
       });
       saveState(true);
