@@ -397,13 +397,16 @@
     </div>
   </div>
 
-  <!-- HIDDEN CONTAINER FOR EXACT REFERENCE IMAGE 2 ATTENDANCE PNG EXPORT -->
+  <!-- HIDDEN CONTAINER FOR EXACT SAVE AS IMAGE EXPORT (WITH AIT LOGO & HEADING + IMAGE 2 TABLE DESIGN) -->
   <div id="imageExportWrapper" style="position: absolute; left: -9999px; top: -9999px;">
     <div id="imageExportContainer" style="background: #ffffff; color: #000000; padding: 48px; width: 1100px; font-family: 'Inter', sans-serif;">
       
-      <!-- Top Center Header matching Reference Image 2 exactly -->
+      <!-- Top Center Header with Logo, Title, Date, and Divider -->
       <div style="text-align: center; margin-bottom: 24px;">
-        <h2 style="font-size: 26px; font-weight: 800; margin: 0 0 10px 0; color: #000000; letter-spacing: -0.01em;">TEAM ATTENDANCE LOG</h2>
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 14px;">
+          <img id="exportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 65px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='ait-logo.png';">
+        </div>
+        <h2 style="font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #000000; letter-spacing: -0.01em;">AIT TEAM ATTENDANCE</h2>
         <div id="imgExportDateLabel" style="font-size: 15px; font-weight: 600; color: #000000; margin-bottom: 20px;">Date: 2026-10-22</div>
         <div style="border-bottom: 3px solid #000000; width: 100%;"></div>
       </div>
@@ -422,9 +425,9 @@
         </tbody>
       </table>
 
-      <!-- Bottom Right Aligned Footer matching Reference Image 2 -->
-      <div id="imgExportFooterTimestamp" style="margin-top: 24px; font-size: 12px; color: #555555; text-align: right; font-weight: 500;">
-        Generated via Team Attendance Pro • 10/22/2026, 4:37:47 PM
+      <!-- Bottom Right Aligned Footer -->
+      <div style="margin-top: 24px; font-size: 12px; color: #555555; text-align: right; font-weight: 500;">
+        Alagappa Institute of Technology &bull; Official Attendance Record
       </div>
     </div>
   </div>
@@ -864,7 +867,7 @@
       URL.revokeObjectURL(url);
     });
 
-    // Save as Image (PNG matching Reference Image 2 exactly)
+    // Save as Image (PNG matching Reference Image 2 specs + AIT Logo and AIT TEAM ATTENDANCE heading)
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
 
@@ -872,11 +875,6 @@
       const day = state.days[k] || {};
 
       document.getElementById('imgExportDateLabel').textContent = 'Date: ' + k;
-      
-      const now = new Date();
-      const formattedTimestamp = now.toLocaleDateString() + ', ' + now.toLocaleTimeString();
-      document.getElementById('imgExportFooterTimestamp').textContent = `Generated via Team Attendance Pro • ${formattedTimestamp}`;
-
       const tbody = document.getElementById('imgExportTableBody');
       tbody.innerHTML = '';
 
@@ -906,7 +904,21 @@
         tbody.appendChild(tr);
       });
 
+      const logoImg = document.getElementById('exportAitLogo');
+      
+      const ensureImageLoaded = (img) => {
+        return new Promise((resolve) => {
+          if (img.complete && img.naturalHeight !== 0) {
+            resolve();
+          } else {
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+          }
+        });
+      };
+
       try {
+        await ensureImageLoaded(logoImg);
         const exportContainer = document.getElementById('imageExportContainer');
         const canvas = await html2canvas(exportContainer, { scale: 2, useCORS: true, allowTaint: true });
         const image = canvas.toDataURL('image/png');
