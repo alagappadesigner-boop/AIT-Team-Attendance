@@ -46,8 +46,9 @@
   }
 </script>
 
-<!-- html2canvas for Save as Image feature -->
+<!-- html2canvas & Supabase JS SDK -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
   body {
@@ -57,7 +58,6 @@
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
-  /* Smooth Modal Backdrop & Pop Animations */
   @keyframes fadeInBackdrop {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -105,8 +105,13 @@
         </div>
       </div>
 
-      <!-- Live Clock & Theme Control -->
+      <!-- Live Clock, Cloud Status & Theme Control -->
       <div class="flex items-center gap-3 flex-wrap justify-end w-full md:w-auto">
+        <div id="cloudSyncStatus" class="bg-[#0D2A45]/80 dark:bg-slate-800/80 border border-brand-gold/30 px-2.5 py-1.5 rounded-md text-xs text-brand-gold font-medium flex items-center gap-1.5 shadow-xs">
+          <i data-lucide="cloud" class="w-3.5 h-3.5"></i>
+          <span id="cloudStatusText">Cloud Ready</span>
+        </div>
+
         <div id="liveClockDisplay" class="bg-[#0D2A45]/80 dark:bg-slate-800/80 border border-brand-gold/30 px-3 py-1.5 rounded-md text-right flex items-center gap-3 shadow-xs">
           <div class="text-slate-200 text-xs font-medium flex items-center gap-1.5">
             <i data-lucide="calendar" class="w-3.5 h-3.5 text-brand-gold"></i>
@@ -149,13 +154,9 @@
   <!-- MAIN APPLICATION BODY -->
   <main class="max-w-7xl mx-auto px-4 md:px-6 py-5 flex-1 w-full space-y-5">
 
-    <!-- ================= TAB 1: DAILY ATTENDANCE ================= -->
+    <!-- TAB 1: DAILY ATTENDANCE -->
     <section id="dailyTab" class="tab-content active space-y-5">
-      
-      <!-- Executive Summary Cards -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
-        
-        <!-- Card 1: Team Members -->
         <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
           <div>
             <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Team Members</div>
@@ -167,7 +168,6 @@
           </div>
         </div>
 
-        <!-- Card 2: Present Today -->
         <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
           <div>
             <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Present Today</div>
@@ -179,7 +179,6 @@
           </div>
         </div>
 
-        <!-- Card 3: Late Arrivals -->
         <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
           <div>
             <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Late Arrivals</div>
@@ -191,7 +190,6 @@
           </div>
         </div>
 
-        <!-- Card 4: Total Hours Logged -->
         <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-3.5 shadow-sm hover:shadow-md transition duration-200 flex items-center justify-between">
           <div>
             <div class="text-[11px] font-semibold text-brand-muted uppercase tracking-wider">Total Hours Logged</div>
@@ -202,14 +200,10 @@
             <i data-lucide="hourglass" class="w-5 h-5"></i>
           </div>
         </div>
-
       </div>
 
-      <!-- Attendance Toolbar -->
       <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg shadow-sm overflow-hidden">
         <div class="p-3.5 border-b border-brand-border dark:border-slate-800 flex flex-wrap gap-3 items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-          
-          <!-- Date & Reporting Time -->
           <div class="flex flex-wrap items-center gap-3">
             <div>
               <label for="datePicker" class="block text-[11px] font-semibold text-brand-muted uppercase tracking-wider mb-1">Date</label>
@@ -221,7 +215,6 @@
             </div>
           </div>
 
-          <!-- Actions Toolbar -->
           <div class="flex flex-wrap items-center gap-2">
             <div class="relative">
               <input type="search" id="searchBox" placeholder="Search staff name..." class="border border-brand-border dark:border-slate-700 rounded-md pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-slate-950 dark:text-white w-44 focus:outline-none focus:ring-1 focus:ring-brand-gold transition">
@@ -243,7 +236,6 @@
           </div>
         </div>
 
-        <!-- Attendance Master Table -->
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse min-w-[1020px]">
             <thead>
@@ -258,23 +250,21 @@
                 <th class="py-2.5 px-3.5">Remarks</th>
               </tr>
             </thead>
-            <tbody id="attendanceBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs">
-              <!-- Dynamically populated -->
-            </tbody>
+            <tbody id="attendanceBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs"></tbody>
           </table>
           <div id="emptyMessage" class="p-8 text-center text-brand-muted dark:text-slate-400 hidden">No team members match your search query.</div>
         </div>
 
         <div class="px-4 py-2.5 bg-slate-50 dark:bg-slate-900/60 border-t border-brand-border dark:border-slate-800 flex flex-wrap justify-between items-center text-[11px] text-brand-muted dark:text-slate-400">
           <span id="saveStatus" class="flex items-center gap-1.5">
-            <i data-lucide="info" class="w-3.5 h-3.5 text-brand-gold"></i> Changes are stored in browser storage when you click “Save Attendance”.
+            <i data-lucide="info" class="w-3.5 h-3.5 text-brand-gold"></i> Form entries start blank on page load. Saved records persist in memory and cloud.
           </span>
-          <span>Default out-time: 06:00 PM. Valid date required for all punch & save actions.</span>
+          <span>Default out-time: 06:00 PM. Valid date required for all actions.</span>
         </div>
       </div>
     </section>
 
-    <!-- ================= TAB 2: MONTHLY SUMMARY ================= -->
+    <!-- TAB 2: MONTHLY SUMMARY -->
     <section id="monthlyTab" class="tab-content space-y-5">
       <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-4 shadow-sm space-y-4">
         <div class="flex flex-wrap gap-4 items-end justify-between border-b border-brand-border dark:border-slate-800 pb-3.5">
@@ -313,15 +303,13 @@
                 <th class="py-2.5 px-3.5">Total Working Hours</th>
               </tr>
             </thead>
-            <tbody id="monthlyBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs">
-              <!-- Dynamically populated -->
-            </tbody>
+            <tbody id="monthlyBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- ================= TAB 3: STAFF ROSTER ================= -->
+    <!-- TAB 3: STAFF ROSTER -->
     <section id="rosterTab" class="tab-content space-y-5">
       <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-4 shadow-sm space-y-4">
         <div class="flex justify-between items-center border-b border-brand-border dark:border-slate-800 pb-3">
@@ -344,24 +332,21 @@
                 <th class="py-2.5 px-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody id="rosterBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs">
-              <!-- Dynamically populated -->
-            </tbody>
+            <tbody id="rosterBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- ================= TAB 4: DATA & SETTINGS ================= -->
+    <!-- TAB 4: DATA & SETTINGS -->
     <section id="settingsTab" class="tab-content space-y-5">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        
         <div class="bg-white dark:bg-slate-900 border border-brand-border dark:border-slate-800 rounded-lg p-4 shadow-sm space-y-3">
           <div class="flex items-center gap-2 border-b border-brand-border dark:border-slate-800 pb-2.5">
             <i data-lucide="database" class="w-4 h-4 text-brand-gold"></i>
             <h3 class="font-bold text-xs uppercase tracking-wider text-brand-text dark:text-white">JSON Data Backup & Restore</h3>
           </div>
-          <p class="text-xs text-brand-muted leading-relaxed">Generate full system JSON backups including staff rosters, historical logs, and custom shift settings, or import existing files into storage.</p>
+          <p class="text-xs text-brand-muted leading-relaxed">Generate full system JSON backups including staff rosters and historical logs, or import existing files into storage.</p>
           <div class="flex flex-wrap gap-2.5 pt-1">
             <button id="backupJsonBtn" class="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-brand-border dark:border-slate-700 text-brand-text dark:text-slate-200 px-3.5 py-1.5 rounded-md text-xs font-medium transition duration-150 flex items-center gap-1.5 active:scale-95">
               <i data-lucide="download" class="w-3.5 h-3.5"></i> Download Backup
@@ -385,13 +370,11 @@
             </button>
           </div>
         </div>
-
       </div>
     </section>
-
   </main>
 
-  <!-- CONFIRMATION SUCCESS MODAL DIALOG (Animated) -->
+  <!-- CONFIRMATION SUCCESS MODAL DIALOG -->
   <div id="savedSuccessModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs modal-backdrop-animate hidden">
     <div class="bg-white dark:bg-slate-900 border border-brand-gold/40 rounded-lg p-5 max-w-sm w-full mx-4 shadow-2xl text-center space-y-3.5 modal-card-animate">
       <div class="w-10 h-10 bg-[#E5F3EC] dark:bg-emerald-950/60 text-[#187653] dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
@@ -399,7 +382,7 @@
       </div>
       <div class="space-y-1">
         <h3 class="font-bold text-sm text-brand-text dark:text-white uppercase tracking-wider">Attendance Saved Successfully</h3>
-        <p id="savedSuccessModalText" class="text-xs text-brand-muted dark:text-slate-400 leading-relaxed">Attendance records have been stored in system memory.</p>
+        <p id="savedSuccessModalText" class="text-xs text-brand-muted dark:text-slate-400 leading-relaxed">Attendance records have been stored in local & cloud memory.</p>
       </div>
       <button id="savedModalOkBtn" class="w-full bg-[#123456] hover:bg-[#0D2A45] text-white py-2 rounded-md font-medium text-xs transition duration-150 active:scale-95">
         Acknowledge & Clear Form
@@ -407,7 +390,7 @@
     </div>
   </div>
 
-  <!-- REQUIRED DETAILS MISSING VALIDATION MODAL DIALOG (Animated) -->
+  <!-- REQUIRED DETAILS MISSING VALIDATION MODAL DIALOG -->
   <div id="validationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs modal-backdrop-animate hidden">
     <div class="bg-white dark:bg-slate-900 border border-brand-gold/40 rounded-lg p-6 max-w-sm w-full mx-4 shadow-2xl text-center space-y-4 modal-card-animate">
       <div class="w-12 h-12 bg-[#FFF2D8] dark:bg-amber-950/60 text-brand-gold rounded-full flex items-center justify-center mx-auto">
@@ -423,11 +406,9 @@
     </div>
   </div>
 
-  <!-- HIDDEN CONTAINER FOR EXACT SAVE AS IMAGE EXPORT -->
+  <!-- HIDDEN CONTAINER FOR IMAGE EXPORT -->
   <div id="imageExportWrapper" style="position: absolute; left: -9999px; top: -9999px;">
     <div id="imageExportContainer" style="background: #ffffff; color: #000000; padding: 48px; width: 1100px; font-family: 'Inter', sans-serif;">
-      
-      <!-- Top Center Header with Logo, Title, Date, and Divider -->
       <div style="text-align: center; margin-bottom: 24px;">
         <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 14px;">
           <img id="exportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 65px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='ait-logo.png';">
@@ -436,8 +417,6 @@
         <div id="imgExportDateLabel" style="font-size: 15px; font-weight: 600; color: #000000; margin-bottom: 20px;">Date: 2026-10-23</div>
         <div style="border-bottom: 3px solid #000000; width: 100%;"></div>
       </div>
-
-      <!-- Wide 3-Column Attendance Table -->
       <table style="width: 100%; border-collapse: collapse; border: 3px solid #000000; table-layout: fixed;">
         <thead>
           <tr style="background-color: #E2E8F0; color: #000000;">
@@ -446,19 +425,15 @@
             <th style="border: 3px solid #000000; padding: 14px 10px; text-align: center; font-size: 14px; font-weight: 700; width: 28%;">Punch in Time</th>
           </tr>
         </thead>
-        <tbody id="imgExportTableBody">
-          <!-- Dynamically populated -->
-        </tbody>
+        <tbody id="imgExportTableBody"></tbody>
       </table>
-
-      <!-- Bottom Right Aligned Footer -->
       <div style="margin-top: 24px; font-size: 12px; color: #555555; text-align: right; font-weight: 500;">
         Alagappa Institute of Technology &bull; Official Attendance Record
       </div>
     </div>
   </div>
 
-  <!-- INSTITUTIONAL FOOTER WITH CREATOR CREDIT -->
+  <!-- INSTITUTIONAL FOOTER -->
   <footer class="max-w-7xl mx-auto px-4 md:px-6 py-4 text-center text-xs text-brand-muted dark:text-slate-400 border-t border-brand-gold/30 mt-auto w-full flex flex-col md:flex-row justify-between items-center gap-2">
     <div>
       <span class="font-bold text-[#123456] dark:text-slate-300">Alagappa Institute of Technology</span> • Administration Department
@@ -470,6 +445,15 @@
 
   <!-- SYSTEM JAVASCRIPT ENGINE -->
   <script>
+    // SUPABASE CREDENTIALS - REPLACE WITH YOUR PROJECT VALUES
+    const SUPABASE_URL = "https://YOUR_SUPABASE_URL.supabase.co";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+    let supabaseClient = null;
+    if (typeof supabase !== 'undefined' && SUPABASE_URL && !SUPABASE_URL.includes("YOUR_SUPABASE_URL")) {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
     const STORAGE_KEY = 'aitTeamAttendancePro_v7';
 
     const defaultStaff = Array.from({length: 20}, (_, i) => ({
@@ -486,6 +470,51 @@
       theme: 'light'
     };
 
+    function setCloudStatus(msg) {
+      const el = document.getElementById('cloudStatusText');
+      if (el) el.textContent = msg;
+    }
+
+    async function syncToCloud() {
+      if (!supabaseClient) return;
+      setCloudStatus('Syncing...');
+      try {
+        const payload = {
+          id: 'primary_state',
+          state_data: { staff: state.staff, days: state.days, theme: state.theme },
+          updated_at: new Date().toISOString()
+        };
+        const { error } = await supabaseClient.from('ait_app_state').upsert(payload);
+        if (error) throw error;
+        setCloudStatus('Cloud Synced');
+      } catch (e) {
+        console.error('Cloud save failed:', e);
+        setCloudStatus('Offline Mode');
+      }
+    }
+
+    async function syncFromCloud() {
+      if (!supabaseClient) return;
+      setCloudStatus('Checking cloud...');
+      try {
+        const { data, error } = await supabaseClient.from('ait_app_state').select('state_data').eq('id', 'primary_state').single();
+        if (error && error.code !== 'PGRST116') throw error;
+        if (data && data.state_data) {
+          if (data.state_data.staff) state.staff = data.state_data.staff;
+          if (data.state_data.days) state.days = data.state_data.days;
+          if (data.state_data.theme) state.theme = data.state_data.theme;
+          saveState(false);
+          setCloudStatus('Cloud Synced');
+          renderDaily();
+        } else {
+          setCloudStatus('Cloud Ready');
+        }
+      } catch (e) {
+        console.error('Cloud load failed:', e);
+        setCloudStatus('Offline Mode');
+      }
+    }
+
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -500,9 +529,14 @@
       }
     }
 
-    function saveState() {
+    function saveState(triggerCloud = true) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          staff: state.staff,
+          days: state.days,
+          theme: state.theme
+        }));
+        if (triggerCloud) syncToCloud();
         return true;
       } catch (e) {
         console.error('Failed to save to local storage:', e);
@@ -512,7 +546,6 @@
 
     loadState();
 
-    // Date & Time helpers
     function formatLocalDate(d) {
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -526,7 +559,6 @@
     const monthlyMonthPicker = document.getElementById('monthlyMonthPicker');
     monthlyMonthPicker.value = new Date().toISOString().slice(0, 7);
 
-    // Validation Popup Helper
     function showValidationPopup(message) {
       document.getElementById('validationModalText').textContent = message;
       document.getElementById('validationModal').classList.remove('hidden');
@@ -536,13 +568,7 @@
     document.getElementById('validationModalOkBtn').addEventListener('click', () => {
       document.getElementById('validationModal').classList.add('hidden');
     });
-    document.getElementById('validationModal').addEventListener('click', e => {
-      if (e.target === document.getElementById('validationModal')) {
-        document.getElementById('validationModal').classList.add('hidden');
-      }
-    });
 
-    // Date Validation as Real Calendar Date
     function isValidDateString(dateStr) {
       if (!dateStr) return false;
       const regex = /^\d{4}-\d{2}-\d{2}$/;
@@ -561,7 +587,6 @@
       return true;
     }
 
-    // Live Header Clock (IST)
     function updateLiveClock() {
       const now = new Date();
       const optionsDate = { timeZone: 'Asia/Kolkata', weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
@@ -584,7 +609,6 @@
     updateLiveClock();
     setInterval(updateLiveClock, 1000);
 
-    // Theme setup
     function applyTheme() {
       if (state.theme === 'dark') {
         document.documentElement.classList.add('dark');
@@ -603,7 +627,6 @@
       applyTheme();
     });
 
-    // Navigation Tabs Styling
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
@@ -625,11 +648,9 @@
       });
     });
 
-    // Format & Time Parsing Helpers
     function parseToMinutes(t) {
       if (!t) return null;
       let timeStr = String(t).trim().toUpperCase();
-      
       const isPM = timeStr.includes('PM');
       const isAM = timeStr.includes('AM');
       timeStr = timeStr.replace(/(AM|PM)/g, '').trim();
@@ -671,9 +692,7 @@
     function formatTime12h(timeStr) {
       if (!timeStr) return '';
       let str = String(timeStr).trim().toUpperCase();
-      if (str.includes('AM') || str.includes('PM')) {
-        return str;
-      }
+      if (str.includes('AM') || str.includes('PM')) return str;
       const parts = str.split(':');
       if (parts.length < 2) return str;
       let h = parseInt(parts[0], 10);
@@ -693,26 +712,18 @@
       return datePicker.value;
     }
 
+    // CLEAN FORM INITIALIZATION - FRESH BLANK FORM ON REFRESH
     function getFormRecord(staffId) {
       const k = dayKey();
       if (!state.forms[k]) {
         state.forms[k] = {};
       }
       if (!state.forms[k][staffId]) {
-        const saved = state.days[k] && state.days[k][staffId];
-        if (saved) {
-          state.forms[k][staffId] = { ...saved };
-          if (state.forms[k][staffId].outTime) {
-            state.forms[k][staffId].outTime = formatTime12h(state.forms[k][staffId].outTime);
-          }
-        } else {
-          state.forms[k][staffId] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
-        }
+        state.forms[k][staffId] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
       }
       return state.forms[k][staffId];
     }
 
-    // Render Daily Attendance View
     function renderDaily() {
       const q = document.getElementById('searchBox').value.trim().toLowerCase();
       const body = document.getElementById('attendanceBody');
@@ -746,13 +757,13 @@
           </td>
           <td class="py-2.5 px-3.5">
             <div class="flex items-center gap-1.5">
-              <input type="time" data-id="${staff.id}" data-field="inTime" value="${esc(rec.status === 'Absent' || rec.status === 'Leave' ? '' : rec.inTime)}" ${rec.status === 'Absent' || rec.status === 'Leave' ? 'disabled' : ''} aria-label="In time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold transition disabled:opacity-50">
+              <input type="time" data-id="${staff.id}" data-field="inTime" value="${esc(rec.status === 'Absent' || rec.status === 'Leave' ? '' : rec.inTime)}" ${rec.status === 'Absent' || rec.status === 'Leave' ? 'disabled' : ''} class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold transition disabled:opacity-50">
               <button type="button" class="quick-in-btn bg-[#174A78] hover:bg-[#123456] text-white text-[11px] px-2 py-1 rounded font-medium transition duration-150 active:scale-95" data-id="${staff.id}" title="Set current local time">In</button>
             </div>
           </td>
           <td class="py-2.5 px-3.5">
             <div class="flex items-center gap-1.5">
-              <input type="text" data-id="${staff.id}" data-field="outTime" value="${esc(formatTime12h(rec.outTime))}" placeholder="06:00 PM" aria-label="Out time for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold uppercase transition">
+              <input type="text" data-id="${staff.id}" data-field="outTime" value="${esc(formatTime12h(rec.outTime))}" placeholder="06:00 PM" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-24 font-medium focus:outline-none focus:ring-1 focus:ring-brand-gold uppercase transition">
               <button type="button" class="quick-out-btn bg-[#0D2A45] hover:bg-[#123456] text-white text-[11px] px-2 py-1 rounded font-medium transition duration-150 active:scale-95" data-id="${staff.id}" title="Set current local time in 12h AM/PM">Out</button>
             </div>
             ${isMissingPunch ? '<div class="text-[10px] text-[#B93838] font-semibold mt-0.5">⚠️ Missing Out-Punch</div>' : ''}
@@ -762,12 +773,12 @@
             ${rec.status !== 'Present' ? '<span class="text-slate-400 font-normal">—</span>' : (lm == null ? '<span class="text-slate-400 font-normal">—</span>' : (lm > 0 ? `<span class="text-[#B93838]">${lm} min</span>` : '<span class="text-[#187653]">On time</span>'))}
           </td>
           <td class="py-2.5 px-3.5">
-            <select data-id="${staff.id}" data-field="status" aria-label="Status for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium ${rec.status === 'Present' ? 'text-[#187653]' : (rec.status === 'Leave' ? 'text-brand-gold' : '')}">
+            <select data-id="${staff.id}" data-field="status" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white font-medium ${rec.status === 'Present' ? 'text-[#187653]' : (rec.status === 'Leave' ? 'text-brand-gold' : '')}">
               ${['Present','Absent','Leave','Permission','Half Day'].map(s => `<option ${rec.status === s ? 'selected' : ''}>${s}</option>`).join('')}
             </select>
           </td>
           <td class="py-2.5 px-3.5">
-            <input type="text" data-id="${staff.id}" data-field="remarks" value="${esc(rec.remarks)}" placeholder="Optional note" aria-label="Remarks for ${esc(staff.name)}" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-full focus:outline-none focus:ring-1 focus:ring-brand-gold transition">
+            <input type="text" data-id="${staff.id}" data-field="remarks" value="${esc(rec.remarks)}" placeholder="Optional note" class="border border-brand-border dark:border-slate-700 rounded px-2 py-1 text-xs bg-white dark:bg-slate-950 dark:text-white w-full focus:outline-none focus:ring-1 focus:ring-brand-gold transition">
           </td>
         `;
         body.appendChild(tr);
@@ -781,7 +792,6 @@
       if (window.lucide) lucide.createIcons();
     }
 
-    // Input changes
     document.getElementById('attendanceBody').addEventListener('change', e => {
       const el = e.target;
       const id = el.dataset.id;
@@ -790,9 +800,7 @@
 
       const rec = getFormRecord(id);
       let val = el.value;
-      if (field === 'outTime' && val) {
-        val = formatTime12h(val);
-      }
+      if (field === 'outTime' && val) val = formatTime12h(val);
       rec[field] = val;
 
       if (field === 'status' && (val === 'Absent' || val === 'Leave')) {
@@ -810,7 +818,6 @@
       }
     });
 
-    // Quick Punch Button with Validation
     document.getElementById('attendanceBody').addEventListener('click', e => {
       const btn = e.target.closest('button');
       if (!btn) return;
@@ -818,11 +825,6 @@
       if (!id) return;
 
       if (!validateAttendanceDate()) return;
-      if (!state.staff.some(s => s.id === id)) {
-        showValidationPopup('Selected staff member is invalid or no longer active in the roster.');
-        return;
-      }
-
       const rec = getFormRecord(id);
       if (rec.status === 'Absent' || rec.status === 'Leave') {
         showValidationPopup(`Cannot record punch times for staff with status '${rec.status}'.`);
@@ -830,7 +832,6 @@
       }
 
       const now = new Date();
-
       if (btn.classList.contains('quick-in-btn')) {
         rec.inTime = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
       } else if (btn.classList.contains('quick-out-btn')) {
@@ -844,7 +845,6 @@
       renderDaily();
     });
 
-    // Save Attendance Handler with Validation
     document.getElementById('saveBtn').addEventListener('click', () => {
       if (!validateAttendanceDate()) return;
 
@@ -857,27 +857,15 @@
       });
 
       if (!hasData) {
-        showValidationPopup('Please enter at least one attendance entry (In Time or Status change) before saving.');
+        showValidationPopup('Please enter at least one attendance entry before saving.');
         return;
       }
-
-      document.querySelectorAll('#attendanceBody [data-id][data-field]').forEach(el => {
-        const { id, field } = el.dataset;
-        const rec = getFormRecord(id);
-        let val = el.value;
-        if (field === 'outTime' && val) {
-          val = formatTime12h(val);
-        }
-        rec[field] = val;
-      });
 
       const k = dayKey();
       state.days[k] = JSON.parse(JSON.stringify(state.forms[k]));
 
-      const success = saveState();
+      const success = saveState(true);
       if (success) {
-        document.getElementById('saveStatus').innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5 text-[#187653] inline"></i> Saved successfully at ' + new Date().toLocaleTimeString();
-        
         let formattedDateStr = k;
         try {
           const [y, m, d] = k.split('-').map(Number);
@@ -885,7 +873,7 @@
           formattedDateStr = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
         } catch (err) {}
 
-        document.getElementById('savedSuccessModalText').textContent = `Attendance records for ${formattedDateStr} have been successfully committed to memory.`;
+        document.getElementById('savedSuccessModalText').textContent = `Attendance records for ${formattedDateStr} have been successfully saved to local & cloud database.`;
         document.getElementById('savedSuccessModal').classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
       }
@@ -893,7 +881,6 @@
 
     document.getElementById('savedModalOkBtn').addEventListener('click', () => {
       document.getElementById('savedSuccessModal').classList.add('hidden');
-      
       const k = dayKey();
       state.forms[k] = {};
       state.staff.forEach(staff => {
@@ -902,23 +889,10 @@
       renderDaily();
     });
 
-    document.getElementById('savedSuccessModal').addEventListener('click', e => {
-      if (e.target === document.getElementById('savedSuccessModal')) {
-        document.getElementById('savedSuccessModal').classList.add('hidden');
-        const k = dayKey();
-        state.forms[k] = {};
-        state.staff.forEach(staff => {
-          state.forms[k][staff.id] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
-        });
-        renderDaily();
-      }
-    });
-
     datePicker.addEventListener('change', renderDaily);
     document.getElementById('reportingTime').addEventListener('change', renderDaily);
     document.getElementById('searchBox').addEventListener('input', renderDaily);
 
-    // Add Staff Member with Validation
     document.getElementById('addStaffBtn').addEventListener('click', () => {
       const name = prompt('Enter the new team member’s name:');
       if (!name || !name.trim()) {
@@ -926,12 +900,7 @@
         return;
       }
       const trimmedName = name.trim();
-      if (state.staff.some(s => s.name.toLowerCase() === trimmedName.toLowerCase())) {
-        showValidationPopup('A staff member with this name already exists in the roster.');
-        return;
-      }
-
-      const dept = prompt('Enter Department (e.g., Engineering, Operations):', 'General') || 'General';
+      const dept = prompt('Enter Department:', 'General') || 'General';
       const role = prompt('Enter Designation / Role:', 'Team Member') || 'Team Member';
       
       state.staff.push({
@@ -940,23 +909,20 @@
         department: dept.trim(),
         role: role.trim()
       });
-      saveState();
+      saveState(true);
       renderDaily();
     });
 
-    // Export CSV with Validation
     document.getElementById('exportBtn').addEventListener('click', () => {
       if (!validateAttendanceDate()) return;
-
       const k = dayKey();
       const day = state.days[k];
       if (!day || Object.keys(day).length === 0) {
-        showValidationPopup('No attendance records found for the selected date. Please enter attendance details first.');
+        showValidationPopup('No saved attendance records found for this date. Please save attendance first.');
         return;
       }
 
       const rows = [['Date', 'S.No.', 'Staff Name', 'Department', 'Role', 'In Time', 'Out Time (12h)', 'Working Hours', 'Late By (mins)', 'Status', 'Remarks']];
-      
       state.staff.forEach((s, i) => {
         const r = day[s.id] || { inTime: '', outTime: '', status: 'Present', remarks: '' };
         const d = duration(r.inTime, r.outTime, r.status);
@@ -973,14 +939,12 @@
       URL.revokeObjectURL(url);
     });
 
-    // Save as Image with Validation
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
-
       const k = dayKey();
       const day = state.days[k];
       if (!day || Object.keys(day).length === 0) {
-        showValidationPopup('No attendance records found for the selected date. Please enter and save attendance details before exporting image.');
+        showValidationPopup('No saved attendance records found for this date. Please save attendance before exporting image.');
         return;
       }
 
@@ -991,13 +955,9 @@
       state.staff.forEach((s, i) => {
         const r = day[s.id] || getFormRecord(s.id);
         let punchVal = '—';
-        if (r.status === 'Leave') {
-          punchVal = 'Leave';
-        } else if (r.status === 'Absent') {
-          punchVal = 'Absent';
-        } else if (r.inTime) {
-          punchVal = formatTime12h(r.inTime);
-        }
+        if (r.status === 'Leave') punchVal = 'Leave';
+        else if (r.status === 'Absent') punchVal = 'Absent';
+        else if (r.inTime) punchVal = formatTime12h(r.inTime);
 
         const rowBg = (i % 2 === 0) ? '#ffffff' : '#F5F7FA';
         const roleDeptText = s.role || s.department ? ` (${s.role || s.department})` : '';
@@ -1006,29 +966,13 @@
         tr.style.backgroundColor = rowBg;
         tr.innerHTML = `
           <td style="border: 3px solid #000000; padding: 12px 10px; text-align: center; font-size: 14px; font-weight: 600; color: #000000;">${i + 1}</td>
-          <td style="border: 3px solid #000000; padding: 12px 16px; text-align: left; font-size: 14px; font-weight: 700; color: #000000;">
-            ${esc(s.name)}${esc(roleDeptText)}
-          </td>
+          <td style="border: 3px solid #000000; padding: 12px 16px; text-align: left; font-size: 14px; font-weight: 700; color: #000000;">${esc(s.name)}${esc(roleDeptText)}</td>
           <td style="border: 3px solid #000000; padding: 12px 10px; text-align: center; font-size: 14px; font-weight: 600; color: #000000;">${esc(punchVal)}</td>
         `;
         tbody.appendChild(tr);
       });
 
-      const logoImg = document.getElementById('exportAitLogo');
-      
-      const ensureImageLoaded = (img) => {
-        return new Promise((resolve) => {
-          if (img.complete && img.naturalHeight !== 0) {
-            resolve();
-          } else {
-            img.onload = () => resolve();
-            img.onerror = () => resolve();
-          }
-        });
-      };
-
       try {
-        await ensureImageLoaded(logoImg);
         const exportContainer = document.getElementById('imageExportContainer');
         const canvas = await html2canvas(exportContainer, { scale: 2, useCORS: true, allowTaint: true });
         const image = canvas.toDataURL('image/png');
@@ -1037,23 +981,18 @@
         a.download = `AIT_Team_Attendance_${k}.png`;
         a.click();
       } catch (err) {
-        console.error('Image generation failed:', err);
-        showValidationPopup('Failed to generate attendance PNG image. Please try again.');
+        console.error(err);
+        showValidationPopup('Failed to generate attendance PNG image.');
       }
     });
 
-    // Unified Monthly Summary Calculation Function (Shared Source of Truth for UI & CSV)
     function getMonthlySummaryData() {
       const monthStr = monthlyMonthPicker.value;
       const workingDays = parseInt(document.getElementById('workingDaysInput').value) || 22;
       const results = [];
 
       state.staff.forEach((staff, i) => {
-        let presentDays = 0;
-        let leaveDays = 0;
-        let lateCount = 0;
-        let totalOvertimeMins = 0;
-        let totalStaffMins = 0;
+        let presentDays = 0, leaveDays = 0, lateCount = 0, totalOvertimeMins = 0, totalStaffMins = 0;
 
         Object.keys(state.days).forEach(dateKey => {
           if (dateKey.startsWith(monthStr)) {
@@ -1092,7 +1031,6 @@
       return { monthStr, workingDays, results };
     }
 
-    // Monthly Summary Logic
     function renderMonthlySummary() {
       const { results } = getMonthlySummaryData();
       const body = document.getElementById('monthlyBody');
@@ -1100,7 +1038,6 @@
 
       results.forEach((data, i) => {
         const rowBgClass = (i % 2 === 0) ? 'bg-white dark:bg-slate-900' : 'bg-[#F5F7FA] dark:bg-slate-900/60';
-
         const tr = document.createElement('tr');
         tr.className = `${rowBgClass} hover:bg-slate-100 dark:hover:bg-slate-800/60 transition duration-150`;
         tr.innerHTML = `
@@ -1121,7 +1058,6 @@
     document.getElementById('workingDaysInput').addEventListener('input', renderMonthlySummary);
     document.getElementById('approvedHolidaysInput').addEventListener('input', renderMonthlySummary);
 
-    // Monthly CSV Export using the Unified Source of Truth
     document.getElementById('exportMonthlyBtn').addEventListener('click', () => {
       const { monthStr, results } = getMonthlySummaryData();
       if (!monthStr) {
@@ -1131,17 +1067,7 @@
       const rows = [['Month', 'S.No.', 'Staff Name', 'Present Days', 'Attendance %', 'Leave Days', 'Late Count', 'Total Overtime', 'Total Working Hours']];
 
       results.forEach(data => {
-        rows.push([
-          monthStr,
-          data.sNo,
-          data.staffName,
-          data.presentDays,
-          data.attendancePct + '%',
-          data.leaveDays,
-          data.lateCount,
-          data.totalOvertimeStr,
-          data.totalWorkingHoursStr
-        ]);
+        rows.push([monthStr, data.sNo, data.staffName, data.presentDays, data.attendancePct + '%', data.leaveDays, data.lateCount, data.totalOvertimeStr, data.totalWorkingHoursStr]);
       });
 
       const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
@@ -1154,7 +1080,6 @@
       URL.revokeObjectURL(url);
     });
 
-    // Staff Roster Management
     function renderRoster() {
       const body = document.getElementById('rosterBody');
       body.innerHTML = '';
@@ -1183,13 +1108,8 @@
         const field = el.dataset.field;
         const staff = state.staff.find(s => s.id === id);
         if (staff) {
-          const val = el.value.trim();
-          if (field === 'name' && !val) {
-            showValidationPopup('Staff name cannot be empty.');
-            return;
-          }
-          staff[field] = val;
-          saveState();
+          staff[field] = el.value.trim();
+          saveState(true);
         }
       }
     });
@@ -1204,32 +1124,27 @@
       }
       if (confirm('Are you sure you want to remove this staff member from the AIT roster?')) {
         state.staff = state.staff.filter(s => s.id !== id);
-        saveState();
+        saveState(true);
         renderRoster();
       }
     });
 
     document.getElementById('rosterAddBtn').addEventListener('click', () => {
       const name = prompt('Enter staff member name:');
-      if (!name || !name.trim()) {
-        showValidationPopup('Staff name cannot be blank.');
-        return;
-      }
-      const trimmedName = name.trim();
+      if (!name || !name.trim()) return;
       const dept = prompt('Enter Department:', 'Engineering') || 'Engineering';
       const role = prompt('Enter Designation / Role:', 'Software Engineer') || 'Software Engineer';
 
       state.staff.push({
         id: 's' + Date.now(),
-        name: trimmedName,
+        name: name.trim(),
         department: dept.trim(),
         role: role.trim()
       });
-      saveState();
+      saveState(true);
       renderRoster();
     });
 
-    // Backup & Restore with Validation
     document.getElementById('backupJsonBtn').addEventListener('click', () => {
       const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
       const a = document.createElement('a');
@@ -1248,7 +1163,7 @@
           if (parsed && Array.isArray(parsed.staff) && parsed.days) {
             if (confirm('Are you sure you want to overwrite existing AIT data with this backup?')) {
               state = parsed;
-              saveState();
+              saveState(true);
               showValidationPopup('Backup restored successfully!');
               renderDaily();
             }
@@ -1256,7 +1171,6 @@
             showValidationPopup('Invalid backup file format.');
           }
         } catch (err) {
-          console.error(err);
           showValidationPopup('Failed to parse JSON backup file.');
         }
       };
@@ -1270,8 +1184,9 @@
       }
     });
 
-    // Initial render
+    // Initial render and cloud synchronization load
     renderDaily();
+    syncFromCloud();
   </script>
 </body>
 </html>
