@@ -469,30 +469,40 @@
     </div>
   </div>
 
-  <!-- HIDDEN CONTAINER FOR IMAGE EXPORT -->
+  <!-- PREMIUM REDESIGNED HIDDEN CONTAINER FOR IMAGE EXPORT -->
   <div id="imageExportWrapper" style="position: absolute; left: -9999px; top: -9999px;">
-    <div id="imageExportContainer" style="background: #ffffff; color: #000000; padding: 48px; width: 1100px; font-family: 'Inter', sans-serif;">
-      <div style="text-align: center; margin-bottom: 24px;">
-        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 14px;">
-          <img id="exportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 65px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='ait-logo.png';">
+    <div id="imageExportContainer" style="background: #FFFFFF; color: #172B42; padding: 56px 64px; width: 1100px; font-family: 'Inter', sans-serif; box-sizing: border-box;">
+      
+      <!-- REPORT HEADER -->
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 16px;">
+          <img id="exportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 72px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='ait-logo.png';">
         </div>
-        <h2 style="font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #000000; letter-spacing: -0.01em;">AIT TEAM ATTENDANCE</h2>
-        <div id="imgExportDateLabel" style="font-size: 15px; font-weight: 600; color: #000000; margin-bottom: 20px;">Date: 2026-10-23</div>
-        <div style="border-bottom: 3px solid #000000; width: 100%;"></div>
+        <h2 style="font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #123456; letter-spacing: -0.01em;">AIT TEAM ATTENDANCE</h2>
+        <div id="imgExportDateLabel" style="font-size: 15px; font-weight: 600; color: #617184; margin-bottom: 22px;">Date: 2026-10-23</div>
+        <div style="border-bottom: 2px solid #C5A45A; width: 100%;"></div>
       </div>
-      <table style="width: 100%; border-collapse: collapse; border: 3px solid #000000; table-layout: fixed;">
+
+      <!-- REPORT TABLE -->
+      <table style="width: 100%; border-collapse: collapse; border: 1px solid #123456; table-layout: fixed;">
         <thead>
-          <tr style="background-color: #E2E8F0; color: #000000;">
-            <th style="border: 3px solid #000000; padding: 14px 10px; text-align: center; font-size: 14px; font-weight: 700; width: 9%;">S.No</th>
-            <th style="border: 3px solid #000000; padding: 14px 16px; text-align: left; font-size: 14px; font-weight: 700; width: 63%;">Team Members</th>
-            <th style="border: 3px solid #000000; padding: 14px 10px; text-align: center; font-size: 14px; font-weight: 700; width: 28%;">Punch in Time</th>
+          <tr style="background-color: #123456; color: #FFFFFF;">
+            <th style="border: 1px solid #123456; padding: 14px 12px; text-align: center; font-size: 13px; font-weight: 700; width: 10%; text-transform: uppercase; letter-spacing: 0.05em;">S.No</th>
+            <th style="border: 1px solid #123456; padding: 14px 20px; text-align: left; font-size: 13px; font-weight: 700; width: 62%; text-transform: uppercase; letter-spacing: 0.05em;">Team Members</th>
+            <th style="border: 1px solid #123456; padding: 14px 12px; text-align: center; font-size: 13px; font-weight: 700; width: 28%; text-transform: uppercase; letter-spacing: 0.05em;">Punch In Time</th>
           </tr>
         </thead>
         <tbody id="imgExportTableBody"></tbody>
       </table>
-      <div style="margin-top: 24px; font-size: 12px; color: #555555; text-align: right; font-weight: 500;">
-        Alagappa Institute of Technology &bull; Official Attendance Record
+
+      <!-- REPORT FOOTER -->
+      <div style="margin-top: 32px; display: flex; justify-content: flex-end; align-items: center;">
+        <div style="text-align: right;">
+          <div style="font-size: 13px; color: #123456; font-weight: 700;">Alagappa Institute of Technology &bull; Official Attendance Record</div>
+          <div id="imgExportTimestamp" style="font-size: 11px; color: #617184; font-weight: 500; margin-top: 4px;"></div>
+        </div>
       </div>
+
     </div>
   </div>
 
@@ -1005,6 +1015,7 @@
       URL.revokeObjectURL(url);
     });
 
+    // UPDATED SAVE AS IMAGE FUNCTION WITH PREMIUM INSTITUTIONAL REPORT STYLING
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
       const k = dayKey();
@@ -1015,6 +1026,16 @@
       }
 
       document.getElementById('imgExportDateLabel').textContent = 'Date: ' + k;
+      
+      const now = new Date();
+      let timestampStr = '';
+      try {
+        timestampStr = 'Generated on: ' + now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ' at ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+      } catch (e) {
+        timestampStr = 'Generated on: ' + now.toLocaleString();
+      }
+      document.getElementById('imgExportTimestamp').textContent = timestampStr;
+
       const tbody = document.getElementById('imgExportTableBody');
       tbody.innerHTML = '';
 
@@ -1026,15 +1047,15 @@
         else if (r.status === 'Half Day') punchVal = 'Half Day';
         else if (r.inTime) punchVal = formatTime12h(r.inTime);
 
-        const rowBg = (i % 2 === 0) ? '#ffffff' : '#FAFBFC';
+        const rowBg = (i % 2 === 0) ? '#FFFFFF' : '#FAFBFC';
         const roleText = s.role ? ` (${s.role})` : '';
 
         const tr = document.createElement('tr');
         tr.style.backgroundColor = rowBg;
         tr.innerHTML = `
-          <td style="border: 3px solid #000000; padding: 12px 10px; text-align: center; font-size: 14px; font-weight: 600; color: #000000;">${i + 1}</td>
-          <td style="border: 3px solid #000000; padding: 12px 16px; text-align: left; font-size: 14px; font-weight: 700; color: #000000;">${esc(s.name)}${esc(roleText)}</td>
-          <td style="border: 3px solid #000000; padding: 12px 10px; text-align: center; font-size: 14px; font-weight: 600; color: #000000;">${esc(punchVal)}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 12px 12px; text-align: center; font-size: 13px; font-weight: 600; color: #172B42;">${i + 1}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 12px 20px; text-align: left; font-size: 13px; font-weight: 700; color: #123456;">${esc(s.name)}<span style="font-weight: 500; color: #617184; font-size: 12px;">${esc(roleText)}</span></td>
+          <td style="border: 1px solid #D7E0E9; padding: 12px 12px; text-align: center; font-size: 13px; font-weight: 600; color: ${punchVal === 'Absent' ? '#B93838' : (punchVal === 'Permission' || punchVal === 'Half Day' ? '#C5A45A' : '#187653')};">${esc(punchVal)}</td>
         `;
         tbody.appendChild(tr);
       });
