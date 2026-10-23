@@ -1025,6 +1025,8 @@
                   totalStaffMins += dur;
                   if (dur > 480) totalOvertimeMins += (dur - 480);
                 }
+              } else if (rec.status === 'Leave') {
+                leaveDays++;
               }
             }
           }
@@ -1036,7 +1038,7 @@
           staffName: staff.name,
           presentDays,
           attendancePct,
-          leaveDays: '—',
+          leaveDays,
           lateCount,
           totalOvertimeMins,
           totalStaffMins,
