@@ -501,7 +501,7 @@
     <div id="imageExportContainer" style="background: #FFFFFF; color: #172B42; padding: 56px 64px; width: 1100px; font-family: 'Inter', sans-serif; box-sizing: border-box;">
       <div style="text-align: center; margin-bottom: 28px;">
         <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 16px;">
-          <img id="exportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 72px; width: auto; object-fit: contain;" onerror="this.onerror=null; this.src='ait-logo.png';">
+          <img id="exportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 72px; width: auto; object-fit: contain;" crossorigin="anonymous" onerror="this.onerror=null; this.src='ait-logo.png';">
         </div>
         <h2 style="font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #123456; letter-spacing: -0.01em;">AIT TEAM ATTENDANCE</h2>
         <div id="imgExportDateLabel" style="font-size: 15px; font-weight: 600; color: #617184; margin-bottom: 22px;">Date: 2026-10-26</div>
@@ -511,8 +511,8 @@
         <thead>
           <tr style="background-color: #123456; color: #FFFFFF;">
             <th style="border: 1px solid #123456; padding: 14px 12px; text-align: center; font-size: 13px; font-weight: 700; width: 10%; text-transform: uppercase;">S.No</th>
-            <th style="border: 1px solid #123456; padding: 14px 20px; text-align: left; font-size: 13px; font-weight: 700; width: 62%; text-transform: uppercase;">Team Members</th>
-            <th style="border: 1px solid #123456; padding: 14px 12px; text-align: center; font-size: 13px; font-weight: 700; width: 28%; text-transform: uppercase;">Punch In Time</th>
+            <th style="border: 1px solid #123456; padding: 14px 20px; text-align: left; font-size: 13px; font-weight: 700; width: 52%; text-transform: uppercase;">Team Members</th>
+            <th style="border: 1px solid #123456; padding: 14px 16px; text-align: center; font-size: 13px; font-weight: 700; width: 38%; text-transform: uppercase;">Status & In Time</th>
           </tr>
         </thead>
         <tbody id="imgExportTableBody"></tbody>
@@ -1065,9 +1065,9 @@
     document.getElementById('exportBtn').addEventListener('click', () => {
       if (!validateAttendanceDate()) return;
       const k = dayKey();
-      const day = state.days[k];
+      const day = state.days[k] || state.forms[k];
       if (!day || Object.keys(day).length === 0) {
-        showValidationPopup('No saved attendance records found for this date. Please save attendance first.');
+        showValidationPopup('No attendance records found for this date. Please enter or save attendance first.');
         return;
       }
 
@@ -1088,12 +1088,13 @@
       URL.revokeObjectURL(url);
     });
 
+    // FIXED SAVE IMAGE FUNCTION (CONSISTENT FORM/SAVED RECORDS & ACCURATE STATUS REFLECTION)
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
       const k = dayKey();
-      const day = state.days[k];
+      const day = state.forms[k] || state.days[k];
       if (!day || Object.keys(day).length === 0) {
-        showValidationPopup('No saved attendance records found for this date. Please save attendance before exporting image.');
+        showValidationPopup('No attendance records found for this date. Please enter attendance before exporting image.');
         return;
       }
 
@@ -1113,11 +1114,29 @@
 
       state.staff.forEach((s, i) => {
         const r = day[s.id] || getFormRecord(s.id);
-        let punchVal = '—';
-        if (r.status === 'Absent') punchVal = 'Absent';
-        else if (r.status === 'Permission') punchVal = 'Permission';
-        else if (r.status === 'Half Day') punchVal = 'Half Day';
-        else if (r.inTime) punchVal = formatTime12h(r.inTime);
+        let statusVal = r.status || 'Present';
+        let displayVal = '—';
+        let textColor = '#187653';
+
+        if (statusVal === 'Absent') {
+          displayVal = 'Absent';
+          textColor = '#B93838';
+        } else if (statusVal === 'Permission') {
+          displayVal = 'Permission';
+          textColor = '#C5A45A';
+        } else if (statusVal === 'Half Day') {
+          displayVal = 'Half Day';
+          textColor = '#C5A45A';
+        } else {
+          // Present status
+          if (r.inTime) {
+            displayVal = formatTime12h(r.inTime);
+            textColor = '#187653';
+          } else {
+            displayVal = 'Present (No time recorded)';
+            textColor = '#174A78';
+          }
+        }
 
         const rowBg = (i % 2 === 0) ? '#FFFFFF' : '#FAFBFC';
         const roleText = s.role ? ` (${s.role})` : '';
@@ -1127,7 +1146,7 @@
         tr.innerHTML = `
           <td style="border: 1px solid #D7E0E9; padding: 12px 12px; text-align: center; font-size: 13px; font-weight: 600; color: #172B42;">${i + 1}</td>
           <td style="border: 1px solid #D7E0E9; padding: 12px 20px; text-align: left; font-size: 13px; font-weight: 700; color: #123456;">${esc(s.name)}<span style="font-weight: 500; color: #617184; font-size: 12px;">${esc(roleText)}</span></td>
-          <td style="border: 1px solid #D7E0E9; padding: 12px 12px; text-align: center; font-size: 13px; font-weight: 600; color: ${punchVal === 'Absent' ? '#B93838' : (punchVal === 'Permission' || punchVal === 'Half Day' ? '#C5A45A' : '#187653')};">${esc(punchVal)}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 700; color: ${textColor};">${esc(displayVal)}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -1160,7 +1179,6 @@
         return;
       }
 
-      // Verify logo image loading before generating PNG
       const logoImg = document.getElementById('leaveReportAitLogo');
       const isLogoLoaded = await new Promise((resolve) => {
         if (logoImg.complete && logoImg.naturalHeight !== 0) {
@@ -1168,7 +1186,6 @@
         } else {
           logoImg.onload = () => resolve(true);
           logoImg.onerror = () => resolve(false);
-          // Timeout fallback in case image hangs
           setTimeout(() => resolve(logoImg.complete && logoImg.naturalHeight !== 0), 2000);
         }
       });
