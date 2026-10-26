@@ -293,7 +293,7 @@
     </section>
 
     <!-- TAB 2: MONTHLY SUMMARY -->
-    <section id="monthlyTab" class="tab-content space-y-6">
+    <section id="monthlyTab" class="tab-content space-y-8">
       <div class="bg-white dark:bg-slate-900 border border-brand-border/80 dark:border-slate-800 rounded-2xl p-5 shadow-enterprise space-y-5">
         <div class="flex flex-wrap gap-4 items-end justify-between border-b border-brand-border/80 dark:border-slate-800 pb-4">
           <div>
@@ -307,6 +307,7 @@
           </div>
         </div>
 
+        <!-- MONTHLY SUMMARY TABLE -->
         <div class="overflow-x-auto rounded-xl border border-brand-border/60 dark:border-slate-800">
           <table class="w-full text-left border-collapse min-w-[950px]">
             <thead>
@@ -324,6 +325,29 @@
             <tbody id="monthlyBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- DETAILED LEAVE & STATUS RECORDS SECTION -->
+      <div class="bg-white dark:bg-slate-900 border border-brand-border/80 dark:border-slate-800 rounded-2xl p-5 shadow-enterprise space-y-4">
+        <div>
+          <h3 class="font-extrabold text-sm text-brand-navy dark:text-white uppercase tracking-wider">Leave & Absence Details</h3>
+          <p class="text-xs text-brand-muted mt-0.5">Itemized record of all non-present attendance statuses (Absent, Permission, Half Day, and Leave) for the selected month.</p>
+        </div>
+        <div class="overflow-x-auto rounded-xl border border-brand-border/60 dark:border-slate-800">
+          <table class="w-full text-left border-collapse min-w-[800px]">
+            <thead>
+              <tr class="bg-brand-navy text-white text-[11px] uppercase tracking-wider font-bold border-b-2 border-brand-gold/40">
+                <th class="py-3 px-4 w-12 text-center">S.No.</th>
+                <th class="py-3 px-4">Staff Name</th>
+                <th class="py-3 px-4">Leave Date</th>
+                <th class="py-3 px-4">Attendance Status</th>
+                <th class="py-3 px-4">Total Leave / Non-Present Days</th>
+              </tr>
+            </thead>
+            <tbody id="monthlyLeaveBody" class="divide-y divide-brand-border/60 dark:divide-slate-800 text-xs"></tbody>
+          </table>
+        </div>
+        <div id="monthlyLeaveEmpty" class="p-8 text-center text-brand-muted dark:text-slate-400 font-medium hidden">No leave records found for this month.</div>
       </div>
     </section>
 
@@ -1015,7 +1039,6 @@
       URL.revokeObjectURL(url);
     });
 
-    // UPDATED SAVE AS IMAGE FUNCTION WITH PREMIUM INSTITUTIONAL REPORT STYLING
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
       const k = dayKey();
@@ -1078,11 +1101,13 @@
       const monthStr = monthlyMonthPicker.value;
       const workingDays = 30; // 30-day monthly attendance basis rule
       const results = [];
+      const leaveRecords = [];
 
       state.staff.forEach((staff, i) => {
         let presentDays = 0, leaveDays = 0, lateCount = 0, totalOvertimeMins = 0, totalStaffMins = 0;
+        let staffNonPresentCount = 0;
 
-        Object.keys(state.days).forEach(dateKey => {
+        Object.keys(state.days).sort().forEach(dateKey => {
           if (dateKey.startsWith(monthStr)) {
             const rec = state.days[dateKey][staff.id];
             if (rec) {
@@ -1097,30 +1122,49 @@
                 }
               } else if (rec.status === 'Leave') {
                 leaveDays++;
+                staffNonPresentCount++;
+                leaveRecords.push({
+                  date: dateKey,
+                  staffId: staff.id,
+                  staffName: staff.name,
+                  status: 'Leave'
+                });
+              } else if (rec.status === 'Absent' || rec.status === 'Permission' || rec.status === 'Half Day') {
+                staffNonPresentCount++;
+                leaveRecords.push({
+                  date: dateKey,
+                  staffId: staff.id,
+                  staffName: staff.name,
+                  status: rec.status
+                });
               }
             }
           }
         });
 
+        // If historical Leave status was tracked separately, add to leaveDays
         const attendancePct = workingDays > 0 ? Math.min(100, Math.round((presentDays / workingDays) * 100)) : 0;
         results.push({
           sNo: i + 1,
           staffName: staff.name,
           presentDays,
           attendancePct,
-          leaveDays,
+          leaveDays: leaveDays + (leaveRecords.filter(r => r.staffId === staff.id && r.status === 'Absent').length), // or separate count
           lateCount,
           totalOvertimeMins,
           totalStaffMins,
           totalOvertimeStr: fmtMins(totalOvertimeMins),
-          totalWorkingHoursStr: fmtMins(totalStaffMins)
+          totalWorkingHoursStr: fmtMins(totalStaffMins),
+          nonPresentTotal: staffNonPresentCount
         });
       });
-      return { monthStr, results };
+      return { monthStr, results, leaveRecords };
     }
 
     function renderMonthlySummary() {
-      const { results } = getMonthlySummaryData();
+      const { results, leaveRecords } = getMonthlySummaryData();
+      
+      // 1. Render Summary Table
       const body = document.getElementById('monthlyBody');
       body.innerHTML = '';
 
@@ -1140,20 +1184,83 @@
         `;
         body.appendChild(tr);
       });
+
+      // 2. Render Leave Details Table
+      const leaveBody = document.getElementById('monthlyLeaveBody');
+      const leaveEmpty = document.getElementById('monthlyLeaveEmpty');
+      leaveBody.innerHTML = '';
+
+      if (leaveRecords.length === 0) {
+        leaveEmpty.classList.remove('hidden');
+      } else {
+        leaveEmpty.classList.add('hidden');
+        leaveRecords.forEach((lr, idx) => {
+          const rowBgClass = (idx % 2 === 0) ? 'bg-white dark:bg-slate-900' : 'bg-[#FAFBFC] dark:bg-slate-900/60';
+          const staffObj = state.staff.find(s => s.id === lr.staffId);
+          const staffTotalNonPresent = leaveRecords.filter(r => r.staffId === lr.staffId).length;
+
+          const tr = document.createElement('tr');
+          tr.className = `${rowBgClass} hover:bg-slate-100/80 dark:hover:bg-slate-800/60 transition duration-150`;
+          tr.innerHTML = `
+            <td class="py-3 px-4 text-center font-medium text-brand-muted dark:text-slate-400">${idx + 1}</td>
+            <td class="py-3 px-4 font-bold text-[#123456] dark:text-brand-gold text-xs">${esc(lr.staffName)}</td>
+            <td class="py-3 px-4 font-mono font-medium text-brand-muted dark:text-slate-300">${esc(lr.date)}</td>
+            <td class="py-3 px-4 font-semibold ${lr.status === 'Absent' ? 'text-[#B93838]' : (lr.status === 'Permission' || lr.status === 'Half Day' ? 'text-amber-600' : 'text-brand-gold')}">${esc(lr.status)}</td>
+            <td class="py-3 px-4 font-bold text-brand-navy dark:text-slate-200">${staffTotalNonPresent} days recorded</td>
+          `;
+          leaveBody.appendChild(tr);
+        });
+      }
     }
 
     monthlyMonthPicker.addEventListener('change', renderMonthlySummary);
 
+    // TWO-SECTION MONTHLY CSV EXPORT
     document.getElementById('exportMonthlyBtn').addEventListener('click', () => {
       const { monthStr, results } = getMonthlySummaryData();
       if (!monthStr) {
         showValidationPopup('Please select a valid month before exporting monthly summary.');
         return;
       }
-      const rows = [['Month', 'S.No.', 'Staff Name', 'Present Days', 'Attendance %', 'Leave Days', 'Late Count', 'Total Overtime', 'Total Working Hours']];
 
+      const rows = [];
+
+      // SECTION A HEADER & DATA
+      rows.push(['-- SECTION A: MONTHLY ATTENDANCE SUMMARY --']);
+      rows.push(['Month', 'S.No.', 'Staff Name', 'Present Days', 'Attendance %', 'Leave Days', 'Late Count', 'Total Overtime', 'Total Working Hours']);
       results.forEach(data => {
         rows.push([monthStr, data.sNo, data.staffName, data.presentDays, data.attendancePct + '%', data.leaveDays, data.lateCount, data.totalOvertimeStr, data.totalWorkingHoursStr]);
+      });
+
+      // SPACER
+      rows.push([]);
+      rows.push([]);
+
+      // SECTION B HEADER & DATA
+      rows.push(['-- SECTION B: DETAILED ATTENDANCE RECORDS --']);
+      rows.push(['Date', 'S.No.', 'Staff Name', 'Attendance Status', 'In Time', 'Out Time', 'Working Hours', 'Remarks']);
+
+      let detailIndex = 1;
+      Object.keys(state.days).sort().forEach(dateKey => {
+        if (dateKey.startsWith(monthStr)) {
+          const dayData = state.days[dateKey];
+          state.staff.forEach((staff, staffIdx) => {
+            const rec = dayData[staff.id];
+            if (rec) {
+              const dur = duration(rec.inTime, rec.outTime, rec.status);
+              rows.push([
+                dateKey,
+                detailIndex++,
+                staff.name,
+                rec.status || 'Present',
+                formatTime12h(rec.inTime),
+                formatTime12h(rec.outTime),
+                dur == null ? '' : fmtMins(dur),
+                rec.remarks || ''
+              ]);
+            }
+          });
+        }
       });
 
       const csv = rows.map(row => row.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n');
