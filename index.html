@@ -429,24 +429,24 @@
         <i data-lucide="check-circle-2" class="w-7 h-7"></i>
       </div>
       <div class="space-y-1.5">
-        <h3 class="font-extrabold text-sm text-brand-navy dark:text-white uppercase tracking-wider">Attendance Saved Successfully</h3>
+        <h3 class="font-extrabold text-sm text-brand-navy dark:text-white uppercase tracking-wider" id="savedModalTitle">Attendance Saved Successfully</h3>
         <p id="savedSuccessModalText" class="text-xs text-brand-muted dark:text-slate-400 leading-relaxed">Attendance records have been stored in local & cloud memory.</p>
       </div>
       <button id="savedModalOkBtn" class="w-full bg-[#123456] hover:bg-[#0D2A45] text-white py-2.5 rounded-xl font-semibold text-xs transition duration-200 active:scale-95 shadow-md">
-        Acknowledge & Clear Form
+        OK
       </button>
     </div>
   </div>
 
   <!-- REQUIRED DETAILS MISSING VALIDATION MODAL DIALOG -->
   <div id="validationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs modal-backdrop-animate hidden">
-    <div class="bg-white dark:bg-slate-900 border border-brand-gold/40 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center space-y-4 modal-card-animate">
+    <div class="bg-white dark:bg-slate-900 border border-brand-gold/40 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl text-left space-y-4 modal-card-animate">
       <div class="w-12 h-12 bg-[#FFF2D8] dark:bg-amber-950/60 text-brand-gold rounded-full flex items-center justify-center mx-auto shadow-inner">
         <i data-lucide="alert-triangle" class="w-7 h-7"></i>
       </div>
-      <div class="space-y-1.5">
-        <h3 class="font-extrabold text-sm text-brand-navy dark:text-white uppercase tracking-wider">Required Details Missing</h3>
-        <p id="validationModalText" class="text-xs text-brand-muted dark:text-slate-400 leading-relaxed">Please enter the required details before proceeding.</p>
+      <div class="space-y-1.5 text-center">
+        <h3 class="font-extrabold text-sm text-brand-navy dark:text-white uppercase tracking-wider" id="validationModalTitle">Required Details Missing</h3>
+        <p id="validationModalText" class="text-xs text-brand-muted dark:text-slate-400 leading-relaxed whitespace-pre-line">Please enter the required details before proceeding.</p>
       </div>
       <button id="validationModalOkBtn" class="w-full bg-[#174A78] hover:bg-[#123456] text-white py-2.5 rounded-xl font-semibold text-xs transition duration-200 shadow-md active:scale-95">
         OK
@@ -595,8 +595,9 @@
 
     let state = {
       staff: defaultStaff,
-      days: {},    // Saved historical records
-      forms: {},   // Active input drafts
+      days: {},         // Saved historical records
+      forms: {},        // Active input drafts
+      confirmations: {},// Explicit confirmation state: confirmations[dateKey][staffId] = true
       theme: 'light'
     };
 
@@ -623,7 +624,7 @@
       try {
         const payload = {
           id: 'primary_state',
-          state_data: { staff: state.staff, days: state.days, theme: state.theme },
+          state_data: { staff: state.staff, days: state.days, confirmations: state.confirmations, theme: state.theme },
           updated_at: new Date().toISOString()
         };
         const { error } = await supabaseClient.from('ait_app_state').upsert(payload);
@@ -651,6 +652,9 @@
           if (data.state_data.days) {
             state.days = Object.assign({}, data.state_data.days, state.days);
           }
+          if (data.state_data.confirmations) {
+            state.confirmations = Object.assign({}, data.state_data.confirmations, state.confirmations);
+          }
           if (data.state_data.theme) state.theme = data.state_data.theme;
           saveState(false);
           setCloudStatus('Cloud Synced');
@@ -674,6 +678,7 @@
             state.staff = parsed.staff;
           }
           if (parsed.days) state.days = parsed.days;
+          if (parsed.confirmations) state.confirmations = parsed.confirmations;
           if (parsed.theme) state.theme = parsed.theme;
         }
       } catch (e) {
@@ -686,6 +691,7 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify({
           staff: state.staff,
           days: state.days,
+          confirmations: state.confirmations,
           theme: state.theme
         }));
         if (triggerCloud) syncToCloud();
@@ -711,7 +717,8 @@
     const monthlyMonthPicker = document.getElementById('monthlyMonthPicker');
     monthlyMonthPicker.value = new Date().toISOString().slice(0, 7);
 
-    function showValidationPopup(message) {
+    function showValidationPopup(message, title = 'Required Details Missing') {
+      document.getElementById('validationModalTitle').textContent = title;
       document.getElementById('validationModalText').textContent = message;
       document.getElementById('validationModal').classList.remove('hidden');
       if (window.lucide) lucide.createIcons();
@@ -870,7 +877,14 @@
         state.forms[k] = {};
       }
       if (!state.forms[k][staffId]) {
-        state.forms[k][staffId] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
+        // If saved historical data exists for this staff member on this date, load it and mark as confirmed
+        if (state.days[k] && state.days[k][staffId]) {
+          state.forms[k][staffId] = JSON.parse(JSON.stringify(state.days[k][staffId]));
+          if (!state.confirmations[k]) state.confirmations[k] = {};
+          state.confirmations[k][staffId] = true;
+        } else {
+          state.forms[k][staffId] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
+        }
       }
       return state.forms[k][staffId];
     }
@@ -954,16 +968,28 @@
       if (field === 'outTime' && val) val = formatTime12h(val);
       rec[field] = val;
 
-      if (field === 'status' && val === 'Absent') {
-        rec.inTime = '';
+      if (field === 'status') {
+        // Mark as explicitly confirmed by the user
+        const k = dayKey();
+        if (!state.confirmations[k]) state.confirmations[k] = {};
+        state.confirmations[k][id] = true;
+
+        if (val === 'Absent') {
+          rec.inTime = '';
+        }
       }
       renderDaily();
     });
 
     document.getElementById('attendanceBody').addEventListener('input', e => {
       const el = e.target;
+      const id = el.dataset.id;
+      if (id) {
+        const k = dayKey();
+        if (!state.confirmations[k]) state.confirmations[k] = {};
+        state.confirmations[k][id] = true;
+      }
       if (el.dataset.field === 'remarks') {
-        const id = el.dataset.id;
         const rec = getFormRecord(id);
         rec.remarks = el.value;
       }
@@ -976,6 +1002,10 @@
       if (!id) return;
 
       if (!validateAttendanceDate()) return;
+      const k = dayKey();
+      if (!state.confirmations[k]) state.confirmations[k] = {};
+      state.confirmations[k][id] = true;
+
       const rec = getFormRecord(id);
       if (rec.status === 'Absent') {
         showValidationPopup(`Cannot record punch times for staff with status 'Absent'.`);
@@ -996,23 +1026,31 @@
       renderDaily();
     });
 
+    // SAVE ATTENDANCE WITH EXPLICIT CONFIRMATION VALIDATION (PART 2)
     document.getElementById('saveBtn').addEventListener('click', () => {
       if (!validateAttendanceDate()) return;
 
-      let hasData = false;
+      const k = dayKey();
+      const unconfirmedStaff = [];
+
       state.staff.forEach(staff => {
-        const rec = getFormRecord(staff.id);
-        if (rec.inTime || rec.outTime || rec.status !== 'Present' || rec.remarks) {
-          hasData = true;
+        const isConfirmed = state.confirmations[k] && state.confirmations[k][staff.id];
+        const hasSaved = state.days[k] && state.days[k][staff.id];
+        if (!isConfirmed && !hasSaved) {
+          unconfirmedStaff.push(staff);
         }
       });
 
-      if (!hasData) {
-        showValidationPopup('Please enter at least one attendance entry before saving.');
+      if (unconfirmedStaff.length > 0) {
+        let msg = 'Please enter the attendance details properly. Confirm the attendance status for the following staff members:\n\n';
+        unconfirmedStaff.forEach(s => {
+          msg += `- ${s.name} (${s.role || 'Staff'})\n`;
+        });
+        msg += '\nPlease select Present, Absent, Permission, or Half Day for each staff member before saving.';
+        showValidationPopup(msg, 'Incomplete Attendance');
         return;
       }
 
-      const k = dayKey();
       state.days[k] = JSON.parse(JSON.stringify(state.forms[k]));
 
       const success = saveState(true);
@@ -1024,6 +1062,7 @@
           formattedDateStr = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
         } catch (err) {}
 
+        document.getElementById('savedModalTitle').textContent = 'Attendance Saved Successfully';
         document.getElementById('savedSuccessModalText').textContent = `Attendance records for ${formattedDateStr} have been successfully saved to local & cloud database.`;
         document.getElementById('savedSuccessModal').classList.remove('hidden');
         if (window.lucide) lucide.createIcons();
@@ -1032,12 +1071,6 @@
 
     document.getElementById('savedModalOkBtn').addEventListener('click', () => {
       document.getElementById('savedSuccessModal').classList.add('hidden');
-      const k = dayKey();
-      state.forms[k] = {};
-      state.staff.forEach(staff => {
-        state.forms[k][staff.id] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
-      });
-      renderDaily();
     });
 
     datePicker.addEventListener('change', renderDaily);
@@ -1088,15 +1121,23 @@
       URL.revokeObjectURL(url);
     });
 
-    // FIXED SAVE IMAGE FUNCTION (CONSISTENT FORM/SAVED RECORDS & ACCURATE STATUS REFLECTION)
+    // SAVE IMAGE VALIDATION & EXPORT (PART 1)
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
       const k = dayKey();
-      const day = state.forms[k] || state.days[k];
-      if (!day || Object.keys(day).length === 0) {
-        showValidationPopup('No attendance records found for this date. Please enter attendance before exporting image.');
+      
+      // Check if attendance records have been saved for the selected date
+      if (!state.days[k] || Object.keys(state.days[k]).length === 0) {
+        // Check if records have been entered in form but not saved
+        if (state.forms[k] && Object.keys(state.forms[k]).length > 0) {
+          showValidationPopup('Please save attendance before downloading the report.', 'Please Save Attendance');
+        } else {
+          showValidationPopup('No attendance records found for the selected date. Please enter and save attendance before downloading the image.', 'No Attendance Records');
+        }
         return;
       }
+
+      const savedDayData = state.days[k];
 
       document.getElementById('imgExportDateLabel').textContent = 'Date: ' + k;
       
@@ -1113,7 +1154,7 @@
       tbody.innerHTML = '';
 
       state.staff.forEach((s, i) => {
-        const r = day[s.id] || getFormRecord(s.id);
+        const r = savedDayData[s.id] || { status: 'Present', inTime: '' };
         let statusVal = r.status || 'Present';
         let displayVal = '—';
         let textColor = '#187653';
@@ -1128,7 +1169,6 @@
           displayVal = 'Half Day';
           textColor = '#C5A45A';
         } else {
-          // Present status
           if (r.inTime) {
             displayVal = formatTime12h(r.inTime);
             textColor = '#187653';
@@ -1139,13 +1179,15 @@
         }
 
         const rowBg = (i % 2 === 0) ? '#FFFFFF' : '#FAFBFC';
-        const roleText = s.role ? ` (${s.role})` : '';
+        
+        // Remove designations from staff name in exported image per requirements
+        let cleanName = s.name.trim();
 
         const tr = document.createElement('tr');
         tr.style.backgroundColor = rowBg;
         tr.innerHTML = `
           <td style="border: 1px solid #D7E0E9; padding: 12px 12px; text-align: center; font-size: 13px; font-weight: 600; color: #172B42;">${i + 1}</td>
-          <td style="border: 1px solid #D7E0E9; padding: 12px 20px; text-align: left; font-size: 13px; font-weight: 700; color: #123456;">${esc(s.name)}<span style="font-weight: 500; color: #617184; font-size: 12px;">${esc(roleText)}</span></td>
+          <td style="border: 1px solid #D7E0E9; padding: 12px 20px; text-align: left; font-size: 13px; font-weight: 700; color: #123456;">${esc(cleanName)}</td>
           <td style="border: 1px solid #D7E0E9; padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 700; color: ${textColor};">${esc(displayVal)}</td>
         `;
         tbody.appendChild(tr);
