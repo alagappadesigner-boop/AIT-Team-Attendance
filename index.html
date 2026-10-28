@@ -526,32 +526,48 @@
     </div>
   </div>
 
-  <!-- LEAVE & LOSS OF PAY REPORT IMAGE EXPORT CONTAINER -->
+  <!-- LEAVE & LOSS OF PAY REPORT IMAGE EXPORT CONTAINER (A4 FORMAT & DIRECTOR SIGNATURE) -->
   <div id="leaveReportExportWrapper" style="position: absolute; left: -9999px; top: -9999px;">
-    <div id="leaveReportExportContainer" style="background: #FFFFFF; color: #172B42; padding: 56px 64px; width: 1100px; font-family: 'Inter', sans-serif; box-sizing: border-box;">
-      <div style="text-align: center; margin-bottom: 28px;">
-        <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 16px;">
-          <img id="leaveReportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 72px; width: auto; object-fit: contain;" crossorigin="anonymous">
+    <div id="leaveReportExportContainer" style="background: #FFFFFF; color: #172B42; padding: 48px 48px; width: 794px; font-family: 'Inter', sans-serif; box-sizing: border-box; min-height: 1123px; display: flex; flex-col; justify-content: space-between;">
+      <div>
+        <!-- REPORT HEADER -->
+        <div style="text-align: center; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 14px;">
+            <img id="leaveReportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 68px; width: auto; object-fit: contain;" crossorigin="anonymous" onerror="this.onerror=null; this.src='ait-logo.png';">
+          </div>
+          <h2 style="font-size: 22px; font-weight: 800; margin: 0 0 6px 0; color: #0D1B2A; letter-spacing: -0.01em; uppercase;">STAFF LEAVE & LOSS OF PAY REPORT</h2>
+          <div id="leaveReportMonthLabel" style="font-size: 13px; font-weight: 600; color: #617184; margin-bottom: 18px;">Month: 2026-10</div>
+          <div style="border-bottom: 2px solid #C5A45A; width: 100%;"></div>
         </div>
-        <h2 style="font-size: 26px; font-weight: 800; margin: 0 0 8px 0; color: #123456; letter-spacing: -0.01em;">STAFF LEAVE & LOSS OF PAY REPORT</h2>
-        <div id="leaveReportMonthLabel" style="font-size: 15px; font-weight: 600; color: #617184; margin-bottom: 22px;">Month: 2026-10</div>
-        <div style="border-bottom: 2px solid #C5A45A; width: 100%;"></div>
+
+        <!-- REPORT TABLE (SINGLE ROW PER STAFF MEMBER - MATCHING IMAGE 2) -->
+        <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #0D1B2A; table-layout: fixed;">
+          <thead>
+            <tr style="background-color: #0D1B2A; color: #FFFFFF;">
+              <th style="border: 1px solid #0D1B2A; padding: 10px 6px; text-align: center; font-size: 11px; font-weight: 800; width: 10%; text-transform: uppercase;">S.no</th>
+              <th style="border: 1px solid #0D1B2A; padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 800; width: 32%; text-transform: uppercase;">NAME</th>
+              <th style="border: 1px solid #0D1B2A; padding: 10px 12px; text-align: center; font-size: 11px; font-weight: 800; width: 28%; text-transform: uppercase;">DATE OF LEAVE</th>
+              <th style="border: 1px solid #0D1B2A; padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 800; width: 18%; text-transform: uppercase;">No of leaves</th>
+              <th style="border: 1px solid #0D1B2A; padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 800; width: 12%; text-transform: uppercase;">LOP</th>
+            </tr>
+          </thead>
+          <tbody id="leaveReportExportTableBody"></tbody>
+        </table>
       </div>
-      <table style="width: 100%; border-collapse: collapse; border: 1px solid #123456; table-layout: fixed;">
-        <thead>
-          <tr style="background-color: #123456; color: #FFFFFF;">
-            <th style="border: 1px solid #123456; padding: 14px 12px; text-align: center; font-size: 13px; font-weight: 700; width: 10%; text-transform: uppercase;">S.No</th>
-            <th style="border: 1px solid #123456; padding: 14px 20px; text-align: left; font-size: 13px; font-weight: 700; width: 35%; text-transform: uppercase;">Staff Name</th>
-            <th style="border: 1px solid #123456; padding: 14px 16px; text-align: center; font-size: 13px; font-weight: 700; width: 25%; text-transform: uppercase;">Leave Date</th>
-            <th style="border: 1px solid #123456; padding: 14px 16px; text-align: center; font-size: 13px; font-weight: 700; width: 30%; text-transform: uppercase;">Attendance Status</th>
-          </tr>
-        </thead>
-        <tbody id="leaveReportExportTableBody"></tbody>
-      </table>
-      <div style="margin-top: 32px; display: flex; justify-content: flex-end; align-items: center;">
-        <div style="text-align: right;">
-          <div style="font-size: 13px; color: #123456; font-weight: 700;">Alagappa Institute of Technology &bull; Leave & Loss of Pay Record</div>
-          <div id="leaveReportExportTimestamp" style="font-size: 11px; color: #617184; font-weight: 500; margin-top: 4px;"></div>
+
+      <!-- FOOTER & DIRECTOR SIGNATURE SECTION -->
+      <div style="margin-top: 40px; width: 100%;">
+        <div style="display: flex; justify-content: flex-end; align-items: flex-end; margin-bottom: 28px;">
+          <div style="text-align: center; min-width: 220px;">
+            <div style="border-bottom: 1.5px solid #0D1B2A; width: 100%; margin-bottom: 8px;"></div>
+            <div style="font-size: 13px; font-weight: 800; color: #0D1B2A;">Director Signature</div>
+            <div style="font-size: 11px; font-weight: 600; color: #617184; margin-top: 2px;">Alagappa Institute of Technology</div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; border-t: 1px solid #D7E0E9; pt-12px;">
+          <div style="font-size: 11px; color: #0D1B2A; font-weight: 700;">Alagappa Institute of Technology &bull; Leave & Loss of Pay Record</div>
+          <div id="leaveReportExportTimestamp" style="font-size: 10px; color: #617184; font-weight: 500;"></div>
         </div>
       </div>
     </div>
@@ -569,7 +585,7 @@
 
   <!-- SYSTEM JAVASCRIPT ENGINE -->
   <script>
-    // SUPABASE CREDENTIALS - CONFIGURE YOUR SHARED PROJECT VALUES HERE FOR MULTI-SYSTEM SYNC
+    // SUPABASE CREDENTIALS
     const SUPABASE_URL = "https://YOUR_SUPABASE_URL.supabase.co";
     const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
@@ -595,9 +611,9 @@
 
     let state = {
       staff: defaultStaff,
-      days: {},         // Saved historical records
-      forms: {},        // Active input drafts
-      confirmations: {},// Explicit confirmation state: confirmations[dateKey][staffId] = true
+      days: {},          // Saved historical records
+      forms: {},         // Active input drafts
+      confirmations: {}, // Explicit confirmation state: confirmations[dateKey][staffId] = true
       theme: 'light'
     };
 
@@ -877,7 +893,6 @@
         state.forms[k] = {};
       }
       if (!state.forms[k][staffId]) {
-        // If saved historical data exists for this staff member on this date, load it and mark as confirmed
         if (state.days[k] && state.days[k][staffId]) {
           state.forms[k][staffId] = JSON.parse(JSON.stringify(state.days[k][staffId]));
           if (!state.confirmations[k]) state.confirmations[k] = {};
@@ -969,7 +984,6 @@
       rec[field] = val;
 
       if (field === 'status') {
-        // Mark as explicitly confirmed by the user
         const k = dayKey();
         if (!state.confirmations[k]) state.confirmations[k] = {};
         state.confirmations[k][id] = true;
@@ -1026,7 +1040,7 @@
       renderDaily();
     });
 
-    // SAVE ATTENDANCE WITH EXPLICIT CONFIRMATION VALIDATION (PART 2)
+    // SAVE ATTENDANCE WITH EXPLICIT CONFIRMATION VALIDATION
     document.getElementById('saveBtn').addEventListener('click', () => {
       if (!validateAttendanceDate()) return;
 
@@ -1069,8 +1083,18 @@
       }
     });
 
+    // ACKNOWLEDGE OK ON SUCCESS POPUP: CLEARS TRANSIENT FORM INPUTS
     document.getElementById('savedModalOkBtn').addEventListener('click', () => {
       document.getElementById('savedSuccessModal').classList.add('hidden');
+      const k = dayKey();
+      
+      state.forms[k] = {};
+      if (state.confirmations[k]) state.confirmations[k] = {};
+      
+      state.staff.forEach(staff => {
+        state.forms[k][staff.id] = { inTime: '', outTime: '06:00 PM', status: 'Present', remarks: '' };
+      });
+      renderDaily();
     });
 
     datePicker.addEventListener('change', renderDaily);
@@ -1121,19 +1145,31 @@
       URL.revokeObjectURL(url);
     });
 
-    // SAVE IMAGE VALIDATION & EXPORT (PART 1)
+    // SAVE IMAGE VALIDATION & EXPORT
     document.getElementById('saveAsImageBtn').addEventListener('click', async () => {
       if (!validateAttendanceDate()) return;
       const k = dayKey();
       
-      // Check if attendance records have been saved for the selected date
       if (!state.days[k] || Object.keys(state.days[k]).length === 0) {
-        // Check if records have been entered in form but not saved
-        if (state.forms[k] && Object.keys(state.forms[k]).length > 0) {
-          showValidationPopup('Please save attendance before downloading the report.', 'Please Save Attendance');
-        } else {
-          showValidationPopup('No attendance records found for the selected date. Please enter and save attendance before downloading the image.', 'No Attendance Records');
+        showValidationPopup('Please enter and save attendance details for every staff member before downloading the image.', 'Attendance Details Required');
+        return;
+      }
+
+      const unconfirmedStaff = [];
+      state.staff.forEach(staff => {
+        const isConfirmed = state.confirmations[k] && state.confirmations[k][staff.id];
+        const hasSaved = state.days[k] && state.days[k][staff.id];
+        if (!isConfirmed && !hasSaved) {
+          unconfirmedStaff.push(staff);
         }
+      });
+
+      if (unconfirmedStaff.length > 0) {
+        let msg = 'Please confirm attendance for all staff members before downloading the report:\n\n';
+        unconfirmedStaff.forEach(s => {
+          msg += `- ${s.name} (${s.role || 'Staff'})\n`;
+        });
+        showValidationPopup(msg, 'Attendance Details Required');
         return;
       }
 
@@ -1179,9 +1215,7 @@
         }
 
         const rowBg = (i % 2 === 0) ? '#FFFFFF' : '#FAFBFC';
-        
-        // Remove designations from staff name in exported image per requirements
-        let cleanName = s.name.trim();
+        let cleanName = s.name.replace(/\s*\([^)]*\)/g, '').trim();
 
         const tr = document.createElement('tr');
         tr.style.backgroundColor = rowBg;
@@ -1207,7 +1241,7 @@
       }
     });
 
-    // DOWNLOAD LEAVE & LOSS OF PAY REPORT PNG WITH MANDATORY LOGO VERIFICATION
+    // GENERATE STAFF LEAVE & LOSS OF PAY (LOP) REPORT PNG (MATCHING IMAGE 2 & A4 LAYOUT WITH DIRECTOR SIGNATURE)
     document.getElementById('downloadLeaveReportBtn').addEventListener('click', async () => {
       const monthStr = monthlyMonthPicker.value;
       if (!monthStr) {
@@ -1215,30 +1249,8 @@
         return;
       }
 
-      const { leaveRecords } = getMonthlySummaryData();
-      if (leaveRecords.length === 0) {
-        showValidationPopup(`No leave or non-present records found for ${monthStr}.`);
-        return;
-      }
-
-      const logoImg = document.getElementById('leaveReportAitLogo');
-      const isLogoLoaded = await new Promise((resolve) => {
-        if (logoImg.complete && logoImg.naturalHeight !== 0) {
-          resolve(true);
-        } else {
-          logoImg.onload = () => resolve(true);
-          logoImg.onerror = () => resolve(false);
-          setTimeout(() => resolve(logoImg.complete && logoImg.naturalHeight !== 0), 2000);
-        }
-      });
-
-      if (!isLogoLoaded) {
-        showValidationPopup('Error: Mandatory AIT logo image asset (AIT logo new_1111.png) failed to load. Report export cancelled.');
-        return;
-      }
-
       document.getElementById('leaveReportMonthLabel').textContent = 'Month: ' + monthStr;
-      
+
       const now = new Date();
       let timestampStr = '';
       try {
@@ -1251,15 +1263,59 @@
       const tbody = document.getElementById('leaveReportExportTableBody');
       tbody.innerHTML = '';
 
-      leaveRecords.forEach((lr, idx) => {
+      state.staff.forEach((staff, idx) => {
+        // Collect leave day numbers e.g. [12, 18, 20]
+        const dayNumbers = [];
+
+        Object.keys(state.days).sort().forEach(dateKey => {
+          if (dateKey.startsWith(monthStr)) {
+            const rec = state.days[dateKey][staff.id];
+            if (rec && (rec.status === 'Absent' || rec.status === 'Leave')) {
+              try {
+                const [y, m, d] = dateKey.split('-').map(Number);
+                if (!dayNumbers.includes(d)) dayNumbers.push(d);
+              } catch (e) {}
+            }
+          }
+        });
+
+        dayNumbers.sort((a, b) => a - b);
+
+        let dateOfLeaveStr = 'No leave taken';
+        let totalLeavesStr = 'No leave taken';
+
+        if (dayNumbers.length > 0) {
+          // Format month prefix e.g., "Oct"
+          let monthName = 'Oct';
+          try {
+            const [y, m] = monthStr.split('-').map(Number);
+            const dt = new Date(y, m - 1, 1);
+            monthName = dt.toLocaleDateString('en-GB', { month: 'short' });
+          } catch (e) {}
+
+          if (dayNumbers.length === 1) {
+            dateOfLeaveStr = `${monthName}-${dayNumbers[0]}`;
+          } else if (dayNumbers.length === 2) {
+            dateOfLeaveStr = `${monthName} -${dayNumbers[0]} and ${dayNumbers[1]}`;
+          } else {
+            const allButLast = dayNumbers.slice(0, -1).join(',');
+            const lastDay = dayNumbers[dayNumbers.length - 1];
+            dateOfLeaveStr = `${monthName} -${allButLast} and ${lastDay}`;
+          }
+          totalLeavesStr = String(dayNumbers.length);
+        }
+
         const rowBg = (idx % 2 === 0) ? '#FFFFFF' : '#FAFBFC';
+        let cleanName = staff.name.replace(/\s*\([^)]*\)/g, '').trim();
+
         const tr = document.createElement('tr');
         tr.style.backgroundColor = rowBg;
         tr.innerHTML = `
-          <td style="border: 1px solid #D7E0E9; padding: 12px 12px; text-align: center; font-size: 13px; font-weight: 600; color: #172B42;">${idx + 1}</td>
-          <td style="border: 1px solid #D7E0E9; padding: 12px 20px; text-align: left; font-size: 13px; font-weight: 700; color: #123456;">${esc(lr.staffName)}</td>
-          <td style="border: 1px solid #D7E0E9; padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 600; color: #172B42; font-family: monospace;">${esc(lr.date)}</td>
-          <td style="border: 1px solid #D7E0E9; padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 700; color: ${lr.status === 'Absent' ? '#B93838' : '#C5A45A'};">${esc(lr.status)}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 10px 6px; text-align: center; font-size: 11px; font-weight: 600; color: #172B42;">${idx + 1}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 700; color: #123456;">${esc(cleanName)}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 10px 12px; text-align: center; font-size: 11px; font-weight: 600; color: #172B42;">${esc(dateOfLeaveStr)}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 700; color: ${totalLeavesStr === 'No leave taken' ? '#187653' : '#B93838'};">${esc(totalLeavesStr)}</td>
+          <td style="border: 1px solid #D7E0E9; padding: 10px 8px; text-align: center; font-size: 11px; font-weight: 500; color: #172B42;"></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1270,7 +1326,7 @@
         const image = canvas.toDataURL('image/png');
         const a = document.createElement('a');
         a.href = image;
-        a.download = `AIT_Leave_Loss_Of_Pay_Report_${monthStr}.png`;
+        a.download = `AIT_Staff_Leave_LOP_Report_${monthStr}.png`;
         a.click();
       } catch (err) {
         console.error(err);
