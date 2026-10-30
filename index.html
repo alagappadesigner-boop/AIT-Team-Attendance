@@ -526,21 +526,21 @@
     </div>
   </div>
 
-  <!-- LEAVE & LOSS OF PAY REPORT IMAGE EXPORT CONTAINER (A4 FORMAT & DIRECTOR SIGNATURE) -->
+  <!-- LEAVE & LOSS OF PAY REPORT IMAGE EXPORT CONTAINER (A4 FORMAT & CORRECTED SIGNATURE ALIGNMENT) -->
   <div id="leaveReportExportWrapper" style="position: absolute; left: -9999px; top: -9999px;">
-    <div id="leaveReportExportContainer" style="background: #FFFFFF; color: #172B42; padding: 48px 48px; width: 794px; font-family: 'Inter', sans-serif; box-sizing: border-box; min-height: 1123px; display: flex; flex-col; justify-content: space-between;">
+    <div id="leaveReportExportContainer" style="background: #FFFFFF; color: #172B42; padding: 48px 48px; width: 794px; font-family: 'Inter', sans-serif; box-sizing: border-box; min-height: 1123px; display: flex; flex-direction: column; justify-content: space-between;">
       <div>
         <!-- REPORT HEADER -->
         <div style="text-align: center; margin-bottom: 24px;">
           <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 14px;">
             <img id="leaveReportAitLogo" src="AIT logo new_1111.png" alt="AIT Logo" style="height: 68px; width: auto; object-fit: contain;" crossorigin="anonymous" onerror="this.onerror=null; this.src='ait-logo.png';">
           </div>
-          <h2 style="font-size: 22px; font-weight: 800; margin: 0 0 6px 0; color: #0D1B2A; letter-spacing: -0.01em; uppercase;">STAFF LEAVE & LOSS OF PAY REPORT</h2>
+          <h2 style="font-size: 22px; font-weight: 800; margin: 0 0 6px 0; color: #0D1B2A; letter-spacing: -0.01em; text-transform: uppercase;">STAFF LEAVE & LOSS OF PAY REPORT</h2>
           <div id="leaveReportMonthLabel" style="font-size: 13px; font-weight: 600; color: #617184; margin-bottom: 18px;">Month: 2026-10</div>
           <div style="border-bottom: 2px solid #C5A45A; width: 100%;"></div>
         </div>
 
-        <!-- REPORT TABLE (SINGLE ROW PER STAFF MEMBER - MATCHING IMAGE 2) -->
+        <!-- REPORT TABLE (SINGLE ROW PER STAFF MEMBER) -->
         <table style="width: 100%; border-collapse: collapse; border: 1.5px solid #0D1B2A; table-layout: fixed;">
           <thead>
             <tr style="background-color: #0D1B2A; color: #FFFFFF;">
@@ -565,7 +565,7 @@
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; border-t: 1px solid #D7E0E9; pt-12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #D7E0E9; padding-top: 12px;">
           <div style="font-size: 11px; color: #0D1B2A; font-weight: 700;">Alagappa Institute of Technology &bull; Leave & Loss of Pay Record</div>
           <div id="leaveReportExportTimestamp" style="font-size: 10px; color: #617184; font-weight: 500;"></div>
         </div>
@@ -1241,7 +1241,7 @@
       }
     });
 
-    // GENERATE STAFF LEAVE & LOSS OF PAY (LOP) REPORT PNG (MATCHING IMAGE 2 & A4 LAYOUT WITH DIRECTOR SIGNATURE)
+    // GENERATE STAFF LEAVE & LOSS OF PAY (LOP) REPORT PNG (CONSOLIDATED UNIQUE STAFF ROWS & CORRECTED SIGNATURE)
     document.getElementById('downloadLeaveReportBtn').addEventListener('click', async () => {
       const monthStr = monthlyMonthPicker.value;
       if (!monthStr) {
@@ -1264,7 +1264,6 @@
       tbody.innerHTML = '';
 
       state.staff.forEach((staff, idx) => {
-        // Collect leave day numbers e.g. [12, 18, 20]
         const dayNumbers = [];
 
         Object.keys(state.days).sort().forEach(dateKey => {
@@ -1285,7 +1284,6 @@
         let totalLeavesStr = 'No leave taken';
 
         if (dayNumbers.length > 0) {
-          // Format month prefix e.g., "Oct"
           let monthName = 'Oct';
           try {
             const [y, m] = monthStr.split('-').map(Number);
